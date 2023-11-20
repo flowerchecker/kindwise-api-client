@@ -1,0 +1,39 @@
+repos:
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        language: system
+        types: [ python ]
+        files: ^(src/|tests/|scripts/)
+        entry: black --check --config pyproject.toml
+  - repo: local
+    hooks:
+      - id: flake8
+        name: flake8
+        language: system
+        types: [ python ]
+        files: ^(src/|tests/|scripts/)
+        entry: flake8
+  - repo: local
+    hooks:
+      - id: isort
+        name: isort
+        language: system
+        types: [ python ]
+        files: ^(src/|tests/|scripts/)
+        entry: isort --check
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: trailing-whitespace
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v2.23.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
