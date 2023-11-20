@@ -1,0 +1,9 @@
+name: kindwise-sdk
+
+channels:
+  - defaults
+  - conda-forge
+
+dependencies:
+  - python=3.10
+  - poetry=1.3.2

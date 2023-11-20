@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "kindwise"
+version = "0.1.0"
+description = "python sdk toolkit for integrating kindwise API"
+authors = ["Simon Plhak <simon.plhak@flowerchecker.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+skip-string-normalization = true
