@@ -2,9 +2,10 @@ import base64
 from datetime import datetime
 
 import pytest
+
 from kindwise.insect import InsectApi
-from .conftest import IMAGE_DIR
 from kindwise.models import Identification, Result, Input, Classification, Suggestion, SimilarImage
+from .conftest import IMAGE_DIR, staging_api
 
 
 @pytest.fixture
@@ -231,3 +232,17 @@ def test_delete_identification(api, api_key, identification, requests_mock):
     assert request_record.headers['Content-Type'] == 'application/json'
     assert request_record.headers['Api-Key'] == api_key
     assert response
+
+
+def test_requests_to_server(api, image_path):
+    with staging_api(api, 'insect') as api:
+        identification = api.identify(image_path, latitude_longitude=(1.0, 2.0))
+        assert isinstance(identification, Identification)
+
+        identification = api.get_identification(identification.access_token, details=['image'], language='cz')
+        assert isinstance(identification, Identification)
+        assert 'image' in identification.result.classification.suggestions[0].details
+        assert identification.result.classification.suggestions[0].details['language'] == 'cz'
+        assert api.delete_identification(identification.access_token)
+        with pytest.raises(ValueError):
+            api.get_identification(identification.access_token)
