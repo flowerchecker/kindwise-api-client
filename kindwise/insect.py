@@ -76,3 +76,14 @@ class InsectApi:
             raise ValueError(f'Error while getting identification: {response.status_code=} {response.text=}')
         data = response.json()
         return data if as_dict else Identification.from_dict(response.json())
+
+    def delete_identification(self, token: str) -> bool:
+        headers = {
+            'Content-Type': 'application/json',
+            'Api-Key': self._api_key,
+        }
+        url = f'{self.identification_url}/{token}'
+        response = requests.delete(url, headers=headers)
+        if not response.ok:
+            raise ValueError(f'Error while deleting identification: {response.status_code=} {response.text=}')
+        return True

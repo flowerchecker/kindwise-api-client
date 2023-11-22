@@ -216,3 +216,18 @@ def test_get_identification(api, api_key, identification, identification_dict, i
     api.get_identification(identification.access_token, details='image,images')
     request_record = requests_mock.request_history.pop()
     assert request_record.url == f'{api.identification_url}/{identification.access_token}?details=image,images'
+
+
+def test_delete_identification(api, api_key, identification, requests_mock):
+    requests_mock.delete(
+        f'{api.identification_url}/{identification.access_token}',
+        json=True,
+    )
+    response = api.delete_identification(identification.access_token)
+    assert len(requests_mock.request_history) == 1
+    request_record = requests_mock.request_history.pop()
+    assert request_record.method == 'DELETE'
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}'
+    assert request_record.headers['Content-Type'] == 'application/json'
+    assert request_record.headers['Api-Key'] == api_key
+    assert response
