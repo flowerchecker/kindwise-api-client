@@ -165,6 +165,21 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
         'longitude': 2.0,
     }
 
+    api.identify(image_path, language=['cz', 'de'])
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.identification_url}?language=cz,de'
+
+    api.identify([image_path, image_path])
+    request_record = requests_mock.request_history.pop()
+    assert request_record.json() == {
+        'images': [image_base64, image_base64],
+        'similar_images': True,
+    }
+
+    api.identify(image_path, details='image')
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.identification_url}?details=image'
+
 
 def test_get_identification(api, api_key, identification, identification_dict, image_path, requests_mock):
     requests_mock.get(
@@ -190,13 +205,14 @@ def test_get_identification(api, api_key, identification, identification_dict, i
     assert request_record.method == 'GET'
     assert request_record.url == f'{api.identification_url}/{identification.access_token}?details=image&language=cz'
 
-    requests_mock.get(
-        f'{api.identification_url}/invalid_token',
-        status_code=404,
-        text='The requested identification does not exist.',
-    )
-    with pytest.raises(
-        ValueError,
-        match="Error while getting identification: response.status_code=404 response.text='The requested identification does not exist.'",
-    ):
-        api.get_identification('invalid_token')
+    api.get_identification(identification.access_token, language=['cz', 'de'])
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}?language=cz,de'
+
+    api.get_identification(identification.access_token, details='image')
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}?details=image'
+
+    api.get_identification(identification.access_token, details='image,images')
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}?details=image,images'

@@ -21,8 +21,8 @@ class InsectApi:
 
     def identify(
         self,
-        image: Path | str,
-        details: list[str] = None,
+        image: Path | str | list[str] | list[Path],
+        details: str | list[str] = None,
         latitude_longitude: tuple[float, float] = None,
         language: str | list[str] = None,
         similar_images: bool = True,
@@ -32,8 +32,11 @@ class InsectApi:
             with open(file_name, "rb") as file:
                 return base64.b64encode(file.read()).decode("ascii")
 
+        if not isinstance(image, list):
+            image = [image]
+
         params = {
-            'images': [encode_file(image)],
+            'images': [encode_file(img) for img in image],
             'similar_images': similar_images,
         }
         if latitude_longitude is not None:
@@ -50,16 +53,20 @@ class InsectApi:
         return data if as_dict else Identification.from_dict(response.json())
 
     @staticmethod
-    def __build_query(details: list[str] = None, language: str | list[str] = None):
+    def __build_query(details: str | list[str] = None, language: str | list[str] = None):
+        if isinstance(details, str):
+            details = [details]
         details_query = '' if details is None else f'details={",".join(details)}&'
         if isinstance(language, str):
             language = [language]
-        language_query = '' if language is None else f'language={",".join(language)}'
+        language_query = '' if language is None else f'language={",".join(language)}&'
         query = f'?{details_query}{language_query}'
+        if query.endswith('&'):
+            query = query[:-1]
         return '' if query == '?' else query
 
     def get_identification(
-        self, token: str, details: list[str] = None, language: str | list[str] = None, as_dict: bool = False
+        self, token: str, details: str | list[str] = None, language: str | list[str] = None, as_dict: bool = False
     ) -> Identification:
         headers = {
             'Content-Type': 'application/json',
