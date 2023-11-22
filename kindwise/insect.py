@@ -11,10 +11,10 @@ class InsectApi:
     identification_url = 'https://insect.kindwise.com/api/v1/identification'
 
     def __init__(self, api_key: str = None):
-        self._api_key = settings.API_KEY if api_key is None else api_key
-        if self._api_key is None:
+        self.api_key = settings.INSECT_API_KEY if api_key is None else api_key
+        if self.api_key is None:
             raise ValueError(
-                'API key is required, set it in init method of class or in .env file under "KINDWISE_API_KEY" key'
+                'API key is required, set it in init method of class or in .env file under "INSECT_API_KEY" key'
             )
 
     def identify(
@@ -41,7 +41,7 @@ class InsectApi:
             params["latitude"], params["longitude"] = latitude_longitude
         headers = {
             "Content-Type": "application/json",
-            "Api-Key": self._api_key,
+            "Api-Key": self.api_key,
         }
         url = f'{self.identification_url}{self.__build_query(details, language)}'
         response = requests.post(url, json=params, headers=headers)
@@ -68,7 +68,7 @@ class InsectApi:
     ) -> Identification:
         headers = {
             'Content-Type': 'application/json',
-            'Api-Key': self._api_key,
+            'Api-Key': self.api_key,
         }
         url = f'{self.identification_url}/{token}{self.__build_query(details, language)}'
         response = requests.get(url, headers=headers)
@@ -80,7 +80,7 @@ class InsectApi:
     def delete_identification(self, token: str) -> bool:
         headers = {
             'Content-Type': 'application/json',
-            'Api-Key': self._api_key,
+            'Api-Key': self.api_key,
         }
         url = f'{self.identification_url}/{token}'
         response = requests.delete(url, headers=headers)

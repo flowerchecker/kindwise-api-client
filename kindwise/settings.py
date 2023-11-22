@@ -3,4 +3,4 @@ import dotenv
 
 dotenv.load_dotenv()
 
-API_KEY = os.getenv('KINDWISE_API_KEY')
+INSECT_API_KEY = os.getenv('INSECT_API_KEY')
