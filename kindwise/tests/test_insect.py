@@ -132,14 +132,14 @@ def image_base64(image_path):
 
 def test_identify(api, api_key, identification, identification_dict, image_path, image_base64, requests_mock):
     requests_mock.post(
-        f'{api.identify_url}',
+        f'{api.identification_url}',
         json=identification_dict,
     )
     response_identification = api.identify(image_path)
     assert len(requests_mock.request_history) == 1
     request_record = requests_mock.request_history.pop()
     assert request_record.method == 'POST'
-    assert request_record.url == f'{api.identify_url}'
+    assert request_record.url == f'{api.identification_url}'
     assert request_record.headers['Content-Type'] == 'application/json'
     assert request_record.headers['Api-Key'] == api_key
     assert request_record.json() == {'images': [image_base64], 'similar_images': True}
@@ -155,7 +155,7 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     assert len(requests_mock.request_history) == 1
     request_record = requests_mock.request_history.pop()
     assert request_record.method == 'POST'
-    assert request_record.url == f'{api.identify_url}?details=image&language=cz'
+    assert request_record.url == f'{api.identification_url}?details=image&language=cz'
     assert request_record.headers['Content-Type'] == 'application/json'
     assert request_record.headers['Api-Key'] == api_key
     assert request_record.json() == {
@@ -164,3 +164,39 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
         'latitude': 1.0,
         'longitude': 2.0,
     }
+
+
+def test_get_identification(api, api_key, identification, identification_dict, image_path, requests_mock):
+    requests_mock.get(
+        f'{api.identification_url}/{identification.access_token}',
+        json=identification_dict,
+    )
+    response_identification = api.get_identification(identification.access_token)
+    assert len(requests_mock.request_history) == 1
+    request_record = requests_mock.request_history.pop()
+    assert request_record.method == 'GET'
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}'
+    assert request_record.headers['Content-Type'] == 'application/json'
+    assert request_record.headers['Api-Key'] == api_key
+    assert response_identification == identification
+
+    response_identification = api.get_identification(identification.access_token, as_dict=True)
+    request_record = requests_mock.request_history.pop()
+    assert response_identification == identification_dict
+
+    response_identification = api.get_identification(identification.access_token, details=['image'], language='cz')
+    assert len(requests_mock.request_history) == 1
+    request_record = requests_mock.request_history.pop()
+    assert request_record.method == 'GET'
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}?details=image&language=cz'
+
+    requests_mock.get(
+        f'{api.identification_url}/invalid_token',
+        status_code=404,
+        text='The requested identification does not exist.',
+    )
+    with pytest.raises(
+        ValueError,
+        match="Error while getting identification: response.status_code=404 response.text='The requested identification does not exist.'",
+    ):
+        api.get_identification('invalid_token')
