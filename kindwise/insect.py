@@ -4,7 +4,7 @@ from pathlib import Path
 import requests
 
 from kindwise import settings
-from kindwise.models import Identification
+from kindwise.models import Identification, UsageInfo
 
 
 class InsectApi:
@@ -20,6 +20,10 @@ class InsectApi:
     @property
     def identification_url(self):
         return f'{self.host}/api/v1/identification'
+
+    @property
+    def usage_info_url(self):
+        return f'{self.host}/api/v1/usage_info'
 
     def identify(
         self,
@@ -91,3 +95,14 @@ class InsectApi:
         if not response.ok:
             raise ValueError(f'Error while deleting identification: {response.status_code=} {response.text=}')
         return True
+
+    def usage_info(self, as_dict: bool = False) -> UsageInfo | dict:
+        headers = {
+            'Content-Type': 'application/json',
+            'Api-Key': self.api_key,
+        }
+        response = requests.get(self.usage_info_url, headers=headers)
+        if not response.ok:
+            raise ValueError(f'Error while getting usage info: {response.status_code=} {response.text=}')
+        data = response.json()
+        return data if as_dict else UsageInfo.from_dict(response.json())

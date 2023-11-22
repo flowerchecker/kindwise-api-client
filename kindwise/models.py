@@ -110,3 +110,52 @@ class Identification:
             created=datetime.fromtimestamp(data['created']),
             completed=datetime.fromtimestamp(data['completed']),
         )
+
+
+@dataclass
+class Limits:
+    day: int | None
+    week: int | None
+    month: int | None
+    total: int | None
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            day=data['day'],
+            week=data['week'],
+            month=data['month'],
+            total=data['total'],
+        )
+
+
+@dataclass
+class CanUseCredits:
+    value: bool
+    reason: str | None
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            value=data['value'],
+            reason=data['reason'],
+        )
+
+
+@dataclass
+class UsageInfo:
+    active: bool
+    credit_limits: Limits
+    used: Limits
+    can_use_credits: CanUseCredits
+    remaining: Limits
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            active=data['active'],
+            credit_limits=Limits.from_dict(data['credit_limits']),
+            used=Limits.from_dict(data['used']),
+            can_use_credits=CanUseCredits.from_dict(data['can_use_credits']),
+            remaining=Limits.from_dict(data['remaining']),
+        )

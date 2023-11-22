@@ -5,6 +5,8 @@ from unittest.mock import patch
 
 import pytest
 
+from kindwise.models import UsageInfo
+
 TEST_DIR = Path(__file__).resolve().parent
 IMAGE_DIR = TEST_DIR / 'resources' / 'images'
 MOCK_REQUESTS = True
@@ -25,3 +27,19 @@ def staging_api(api, system):
     with patch.object(api, 'host', staging_host):
         with patch.object(api, 'api_key', api_key):
             yield api
+
+
+@pytest.fixture
+def usage_info_dict():
+    return {
+        "active": True,
+        "credit_limits": {"day": None, "week": None, "month": None, "total": 100},
+        "used": {"day": 1, "week": 1, "month": 1, "total": 2},
+        "can_use_credits": {"value": True, "reason": None},
+        "remaining": {"day": None, "week": None, "month": None, "total": 98},
+    }
+
+
+@pytest.fixture
+def usage_info(usage_info_dict):
+    return UsageInfo.from_dict(usage_info_dict)

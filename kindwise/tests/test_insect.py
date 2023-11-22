@@ -234,8 +234,26 @@ def test_delete_identification(api, api_key, identification, requests_mock):
     assert response
 
 
+def test_usage(api, api_key, usage_info, usage_info_dict, requests_mock):
+    requests_mock.get(
+        api.usage_info_url,
+        json=usage_info_dict,
+    )
+    response = api.usage_info()
+    request_record = requests_mock.request_history.pop()
+    assert request_record.method == 'GET'
+    assert request_record.url == f'{api.usage_info_url}'
+    assert request_record.headers['Content-Type'] == 'application/json'
+    assert request_record.headers['Api-Key'] == api_key
+    assert response == usage_info
+
+    response = api.usage_info(as_dict=True)
+    assert response == usage_info_dict
+
+
 def test_requests_to_server(api, image_path):
     with staging_api(api, 'insect') as api:
+        usage_info = api.usage_info()
         identification = api.identify(image_path, latitude_longitude=(1.0, 2.0))
         assert isinstance(identification, Identification)
 
