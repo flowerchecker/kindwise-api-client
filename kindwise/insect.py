@@ -25,6 +25,9 @@ class InsectApi:
     def usage_info_url(self):
         return f'{self.host}/api/v1/usage_info'
 
+    def feedback_url(self, token: str):
+        return f'{self.identification_url}/{token}/feedback'
+
     def identify(
         self,
         image: Path | str | list[str] | list[Path],
@@ -106,3 +109,21 @@ class InsectApi:
             raise ValueError(f'Error while getting usage info: {response.status_code=} {response.text=}')
         data = response.json()
         return data if as_dict else UsageInfo.from_dict(response.json())
+
+    def feedback(self, token: str, comment: str | None = None, rating: int | None = None) -> bool:
+        if comment is None and rating is None:
+            raise ValueError('Either comment or rating must be provided')
+        headers = {
+            'Content-Type': 'application/json',
+            'Api-Key': self.api_key,
+        }
+        url = self.feedback_url(token)
+        data = {}
+        if comment is not None:
+            data['comment'] = comment
+        if rating is not None:
+            data['rating'] = rating
+        response = requests.post(url, json=data, headers=headers)
+        if not response.ok:
+            raise ValueError(f'Error while sending feedback: {response.status_code=} {response.text=}')
+        return True

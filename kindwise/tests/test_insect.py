@@ -251,6 +251,42 @@ def test_usage(api, api_key, usage_info, usage_info_dict, requests_mock):
     assert response == usage_info_dict
 
 
+def test_feedback(api, api_key, identification, requests_mock):
+    requests_mock.post(
+        f'{api.identification_url}/{identification.access_token}/feedback',
+        json={},
+    )
+    response = api.feedback(identification.access_token, comment='correct', rating=5)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.method == 'POST'
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}/feedback'
+    assert request_record.headers['Content-Type'] == 'application/json'
+    assert request_record.headers['Api-Key'] == api_key
+    assert request_record.json() == {'comment': 'correct', 'rating': 5}
+    assert response
+
+    response = api.feedback(identification.access_token, rating=5)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.method == 'POST'
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}/feedback'
+    assert request_record.headers['Content-Type'] == 'application/json'
+    assert request_record.headers['Api-Key'] == api_key
+    assert request_record.json() == {'rating': 5}
+    assert response
+
+    response = api.feedback(identification.access_token, comment='correct')
+    request_record = requests_mock.request_history.pop()
+    assert request_record.method == 'POST'
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}/feedback'
+    assert request_record.headers['Content-Type'] == 'application/json'
+    assert request_record.headers['Api-Key'] == api_key
+    assert request_record.json() == {'comment': 'correct'}
+    assert response
+
+    with pytest.raises(ValueError, match='Either comment or rating must be provided'):
+        api.feedback(identification.access_token)
+
+
 def test_requests_to_server(api, image_path):
     with staging_api(api, 'insect') as api:
         usage_info = api.usage_info()
