@@ -1,5 +1,8 @@
+from pathlib import Path
+
 from kindwise import settings
 from kindwise.core import KindwiseApi
+from kindwise.models import Identification
 
 
 class InsectApi(KindwiseApi):
@@ -20,3 +23,23 @@ class InsectApi(KindwiseApi):
     @property
     def usage_info_url(self):
         return f'{self.host}/api/v1/usage_info'
+
+    def identify(
+        self,
+        image: Path | str | list[str] | list[Path],
+        details: str | list[str] = None,
+        language: str | list[str] = None,
+        asynchronous: bool = False,
+        as_dict: bool = False,
+        similar_images: bool = True,
+        latitude_longitude: tuple[float, float] = None,
+    ) -> Identification:
+        return super().identify(
+            image=image,
+            details=details,
+            language=language,
+            asynchronous=asynchronous,
+            as_dict=as_dict,
+            similar_images=similar_images,
+            latitude_longitude=latitude_longitude,
+        )

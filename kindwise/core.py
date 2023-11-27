@@ -31,31 +31,39 @@ class KindwiseApi(abc.ABC):
         }
         return requests.request(method, url, json=data, headers=headers)
 
-    def identify(
+    def _build_payload(
         self,
         image: Path | str | list[str] | list[Path],
-        details: str | list[str] = None,
-        latitude_longitude: tuple[float, float] = None,
-        language: str | list[str] = None,
         similar_images: bool = True,
-        asynchronous: bool = False,
-        as_dict: bool = False,
-    ) -> Identification:
+        latitude_longitude: tuple[float, float] = None,
+    ):
         def encode_file(file_name):
-            with open(file_name, "rb") as file:
-                return base64.b64encode(file.read()).decode("ascii")
+            with open(file_name, 'rb') as file:
+                return base64.b64encode(file.read()).decode('ascii')
 
-        if not isinstance(image, list):
-            image = [image]
-
-        params = {
+        payload = {
             'images': [encode_file(img) for img in image],
             'similar_images': similar_images,
         }
         if latitude_longitude is not None:
-            params["latitude"], params["longitude"] = latitude_longitude
+            payload['latitude'], payload['longitude'] = latitude_longitude
+        return payload
+
+    def identify(
+        self,
+        image: Path | str | list[str] | list[Path],
+        details: str | list[str] = None,
+        language: str | list[str] = None,
+        asynchronous: bool = False,
+        as_dict: bool = False,
+        **kwargs,
+    ) -> Identification:
+        if not isinstance(image, list):
+            image = [image]
+
+        payload = self._build_payload(image, **kwargs)
         url = f'{self.identification_url}{self.__build_query(details, language, asynchronous)}'
-        response = self._make_api_call(url, 'POST', params)
+        response = self._make_api_call(url, 'POST', payload)
         if not response.ok:
             raise ValueError(f'Error while creating an identification: {response.status_code=} {response.text=}')
         data = response.json()
