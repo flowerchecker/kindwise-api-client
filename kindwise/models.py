@@ -89,12 +89,12 @@ class Identification:
     model_version: str
     custom_id: str | None
     input: Input
-    result: Result
-    status: str
+    result: Result | None
+    status: str  # todo create an enum for status
     sla_compliant_client: bool
     sla_compliant_system: bool
     created: datetime
-    completed: datetime
+    completed: datetime | None
 
     @classmethod
     def from_dict(cls, data: dict) -> 'Identification':
@@ -103,12 +103,12 @@ class Identification:
             model_version=data['model_version'],
             custom_id=data['custom_id'],
             input=Input.from_dict(data['input']),
-            result=Result.from_dict(data['result']),
+            result=None if 'result' not in data else Result.from_dict(data['result']),
             status=data['status'],
             sla_compliant_client=data['sla_compliant_client'],
             sla_compliant_system=data['sla_compliant_system'],
             created=datetime.fromtimestamp(data['created']),
-            completed=datetime.fromtimestamp(data['completed']),
+            completed=None if data['completed'] is None else datetime.fromtimestamp(data['completed']),
         )
 
 

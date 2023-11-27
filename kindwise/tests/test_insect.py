@@ -181,6 +181,10 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     request_record = requests_mock.request_history.pop()
     assert request_record.url == f'{api.identification_url}?details=image'
 
+    api.identify(image_path, asynchronous=True)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.identification_url}?async=true'
+
 
 def test_get_identification(api, api_key, identification, identification_dict, image_path, requests_mock):
     requests_mock.get(
@@ -291,7 +295,7 @@ def test_requests_to_server(api, image_path):
     with staging_api(api, 'insect') as api:
         usage_info = api.usage_info()
 
-        identification = api.identify(image_path, latitude_longitude=(1.0, 2.0))
+        identification = api.identify(image_path, latitude_longitude=(1.0, 2.0), asynchronous=True)
         assert isinstance(identification, Identification)
 
         api.feedback(identification.access_token, comment='correct', rating=5)

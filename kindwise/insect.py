@@ -35,6 +35,7 @@ class InsectApi:
         latitude_longitude: tuple[float, float] = None,
         language: str | list[str] = None,
         similar_images: bool = True,
+        asynchronous: bool = False,
         as_dict: bool = False,
     ) -> Identification:
         def encode_file(file_name):
@@ -54,7 +55,7 @@ class InsectApi:
             "Content-Type": "application/json",
             "Api-Key": self.api_key,
         }
-        url = f'{self.identification_url}{self.__build_query(details, language)}'
+        url = f'{self.identification_url}{self.__build_query(details, language, asynchronous)}'
         response = requests.post(url, json=params, headers=headers)
         if not response.ok:
             raise ValueError(f'Error while creating identification: {response.status_code=} {response.text=}')
@@ -62,14 +63,15 @@ class InsectApi:
         return data if as_dict else Identification.from_dict(response.json())
 
     @staticmethod
-    def __build_query(details: str | list[str] = None, language: str | list[str] = None):
+    def __build_query(details: str | list[str] = None, language: str | list[str] = None, asynchronous: bool = False):
         if isinstance(details, str):
             details = [details]
         details_query = '' if details is None else f'details={",".join(details)}&'
         if isinstance(language, str):
             language = [language]
         language_query = '' if language is None else f'language={",".join(language)}&'
-        query = f'?{details_query}{language_query}'
+        async_query = f'async=true&' if asynchronous else ''
+        query = f'?{details_query}{language_query}{async_query}'
         if query.endswith('&'):
             query = query[:-1]
         return '' if query == '?' else query
