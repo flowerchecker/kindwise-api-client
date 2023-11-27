@@ -290,13 +290,17 @@ def test_feedback(api, api_key, identification, requests_mock):
 def test_requests_to_server(api, image_path):
     with staging_api(api, 'insect') as api:
         usage_info = api.usage_info()
+
         identification = api.identify(image_path, latitude_longitude=(1.0, 2.0))
         assert isinstance(identification, Identification)
+
+        api.feedback(identification.access_token, comment='correct', rating=5)
 
         identification = api.get_identification(identification.access_token, details=['image'], language='cz')
         assert isinstance(identification, Identification)
         assert 'image' in identification.result.classification.suggestions[0].details
         assert identification.result.classification.suggestions[0].details['language'] == 'cz'
         assert api.delete_identification(identification.access_token)
+
         with pytest.raises(ValueError):
             api.get_identification(identification.access_token)
