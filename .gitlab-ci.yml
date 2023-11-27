@@ -25,4 +25,4 @@ test:
     - poetry -vv install
 
     - pytest -vv
-    - black .. --check --exclude '(\.cache|venv)'
+    - black . --check --exclude '(\.cache|venv)'
