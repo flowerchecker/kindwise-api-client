@@ -29,6 +29,35 @@ def staging_api(api, system):
             yield api
 
 
+def run_test_requests_to_server(api, system_name, image_path, identification_type):
+    assert system_name.lower() in ['insect', 'mushroom', 'plant']
+    with staging_api(api, system_name) as api:
+        usage_info = api.usage_info()
+        print('Usage info:')
+        print(usage_info)
+        print()
+        identification = api.identify(image_path, latitude_longitude=(1.0, 2.0), asynchronous=True)
+        assert isinstance(identification, identification_type)
+        print('Identification created with async:')
+        print(identification)
+        print()
+        assert api.feedback(identification.access_token, comment='correct', rating=5)
+
+        identification = api.get_identification(identification.access_token, details=['image'], language='cz')
+        print('Identification with image details and cz language:')
+        print(identification)
+        assert isinstance(identification, identification_type)
+        assert 'image' in identification.result.classification.suggestions[0].details
+        assert identification.result.classification.suggestions[0].details['language'] == 'cz'
+        assert identification.feedback.comment == 'correct'
+        assert identification.feedback.rating == 5
+
+        assert api.delete_identification(identification.access_token)
+
+        with pytest.raises(ValueError):
+            api.get_identification(identification.access_token)
+
+
 @pytest.fixture
 def usage_info_dict():
     return {
