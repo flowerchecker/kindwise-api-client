@@ -94,7 +94,8 @@ class KindwiseApi(abc.ABC):
         data = response.json()
         return data if as_dict else Identification.from_dict(response.json())
 
-    def delete_identification(self, token: str) -> bool:
+    def delete_identification(self, identification: Identification | str) -> bool:
+        token = identification if isinstance(identification, str) else identification.access_token
         url = f'{self.identification_url}/{token}'
         response = self._make_api_call(url, 'DELETE')
         if not response.ok:
@@ -108,7 +109,8 @@ class KindwiseApi(abc.ABC):
         data = response.json()
         return data if as_dict else UsageInfo.from_dict(response.json())
 
-    def feedback(self, token: str, comment: str | None = None, rating: int | None = None) -> bool:
+    def feedback(self, token: Identification | str, comment: str | None = None, rating: int | None = None) -> bool:
+        token = token if isinstance(token, str) else token.access_token
         if comment is None and rating is None:
             raise ValueError('Either comment or rating must be provided')
         data = {}

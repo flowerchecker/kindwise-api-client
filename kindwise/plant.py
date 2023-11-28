@@ -123,9 +123,5 @@ class PlantApi(KindwiseApi):
         health_assessment = response.json()
         return health_assessment if as_dict else HealthAssessment.from_dict(health_assessment)
 
-    def delete_health_assessment(self, token: str) -> bool:
-        url = f'{self.identification_url}/{token}'
-        response = self._make_api_call(url, 'DELETE')
-        if not response.ok:
-            raise ValueError(f'Error while deleting a health assessment: {response.status_code=} {response.text=}')
-        return True
+    def delete_health_assessment(self, identification: HealthAssessment | str) -> bool:
+        return self.delete_identification(identification)

@@ -238,6 +238,10 @@ def test_delete_identification(api, api_key, identification, requests_mock):
     assert request_record.headers['Api-Key'] == api_key
     assert response
 
+    response = api.delete_identification(identification)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}'
+
 
 def test_usage(api, api_key, usage_info, usage_info_dict, requests_mock):
     requests_mock.get(
@@ -290,3 +294,8 @@ def test_feedback(api, api_key, identification, requests_mock):
 
     with pytest.raises(ValueError, match='Either comment or rating must be provided'):
         api.feedback(identification.access_token)
+
+    response = api.feedback(identification, comment='correct')
+    request_record = requests_mock.request_history.pop()
+    assert request_record.method == 'POST'
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}/feedback'

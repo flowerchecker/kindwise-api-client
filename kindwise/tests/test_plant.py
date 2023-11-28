@@ -536,6 +536,10 @@ def test_delete_health_assessment(api, api_key, health_assessment, requests_mock
     assert request_record.headers['Api-Key'] == api_key
     assert response
 
+    response = api.delete_health_assessment(health_assessment)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.identification_url}/{health_assessment.access_token}'
+
 
 def test_requests_to_plant_server(api: PlantApi, image_path):
     system_name = 'plant'
