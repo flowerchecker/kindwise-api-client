@@ -1,5 +1,6 @@
 import abc
 import base64
+from datetime import datetime
 from pathlib import Path
 
 import requests
@@ -37,6 +38,7 @@ class KindwiseApi(abc.ABC):
         similar_images: bool = True,
         latitude_longitude: tuple[float, float] = None,
         custom_id: int | None = None,
+        date_time: datetime | str | float | None = None,
     ):
         if not isinstance(image, list):
             image = [image]
@@ -53,6 +55,16 @@ class KindwiseApi(abc.ABC):
             payload['latitude'], payload['longitude'] = latitude_longitude
         if custom_id is not None:
             payload['custom_id'] = custom_id
+        if date_time is not None:
+            if isinstance(date_time, datetime):
+                payload['datetime'] = date_time.isoformat()
+            elif isinstance(date_time, str):
+                # check if ISO format is valid
+                payload['datetime'] = datetime.fromisoformat(date_time).isoformat()
+            elif isinstance(date_time, float):
+                payload['datetime'] = datetime.fromtimestamp(date_time).isoformat()
+            else:
+                raise ValueError(f'Invalid date_time format {date_time=} {type(date_time)=}')
         return payload
 
     def identify(

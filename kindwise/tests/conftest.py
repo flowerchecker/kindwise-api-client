@@ -1,6 +1,7 @@
 import os
 import random
 from contextlib import contextmanager
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
 
@@ -39,9 +40,12 @@ def run_test_requests_to_server(api, system_name, image_path, identification_typ
         print()
 
         custom_id = random.randint(1000000, 2000000)
-        identification = api.identify(image_path, latitude_longitude=(1.0, 2.0), asynchronous=True, custom_id=custom_id)
+        date_time = datetime.now()
+        identification = api.identify(
+            image_path, latitude_longitude=(1.0, 2.0), asynchronous=True, custom_id=custom_id, date_time=date_time
+        )
         assert isinstance(identification, identification_type)
-        print(f'Identification created with async and {custom_id=}:')
+        print(f'Identification created with async, {date_time=} and {custom_id=}:')
         print(identification)
         print()
         assert api.feedback(identification.access_token, comment='correct', rating=5)
@@ -55,6 +59,7 @@ def run_test_requests_to_server(api, system_name, image_path, identification_typ
         assert identification.feedback.comment == 'correct'
         assert identification.feedback.rating == 5
         assert identification.custom_id == custom_id
+        assert identification.input.datetime == date_time
 
         assert api.delete_identification(identification.access_token)
 

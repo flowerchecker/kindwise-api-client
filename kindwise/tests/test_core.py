@@ -194,6 +194,19 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
         'custom_id': 1,
     }
 
+    date = '2023-11-28T08:38:48.538187'
+    api.identify(image_path, date_time=date)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'datetime': date}
+    api.identify(image_path, date_time=datetime.fromisoformat(date))
+    request_record = requests_mock.request_history.pop()
+    assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'datetime': date}
+    api.identify(image_path, date_time=datetime.fromisoformat(date).timestamp())
+    request_record = requests_mock.request_history.pop()
+    assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'datetime': date}
+    with pytest.raises(ValueError):
+        api.identify(image_path, date_time='2023-20-20')
+
 
 def test_get_identification(api, api_key, identification, identification_dict, image_path, requests_mock):
     requests_mock.get(

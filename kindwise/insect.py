@@ -1,5 +1,5 @@
 from pathlib import Path
-
+from datetime import datetime
 from kindwise import settings
 from kindwise.core import KindwiseApi
 from kindwise.models import Identification
@@ -34,6 +34,7 @@ class InsectApi(KindwiseApi):
         similar_images: bool = True,
         latitude_longitude: tuple[float, float] = None,
         custom_id: int | None = None,
+        date_time: datetime | str | float | None = None,
     ) -> Identification:
         return super().identify(
             image=image,
@@ -44,4 +45,5 @@ class InsectApi(KindwiseApi):
             similar_images=similar_images,
             latitude_longitude=latitude_longitude,
             custom_id=custom_id,
+            date_time=date_time,
         )

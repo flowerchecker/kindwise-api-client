@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 
 from kindwise import settings
@@ -44,6 +45,7 @@ class PlantApi(KindwiseApi):
         latitude_longitude: tuple[float, float] = None,
         health: bool = False,
         custom_id: int | None = None,
+        date_time: datetime | str | float | None = None,
         as_dict: bool = False,
     ) -> PlantIdentification | dict:
         identification = super().identify(
@@ -55,6 +57,7 @@ class PlantApi(KindwiseApi):
             latitude_longitude=latitude_longitude,
             health=health,
             custom_id=custom_id,
+            date_time=date_time,
             as_dict=True,
         )
         return identification if as_dict else PlantIdentification.from_dict(identification)
@@ -91,12 +94,17 @@ class PlantApi(KindwiseApi):
         latitude_longitude: tuple[float, float] = None,
         full_disease_list: bool = False,
         custom_id: int | None = None,
+        date_time: datetime | str | float | None = None,
         as_dict: bool = False,
     ) -> HealthAssessment | dict:
         query = self._build_query(details, language, asynchronous, full_disease_list=full_disease_list)
         url = f'{self.health_assessment_url}{query}'
         payload = self._build_payload(
-            image, similar_images=similar_images, latitude_longitude=latitude_longitude, custom_id=custom_id
+            image,
+            similar_images=similar_images,
+            latitude_longitude=latitude_longitude,
+            custom_id=custom_id,
+            date_time=date_time,
         )
         response = self._make_api_call(url, 'POST', payload)
         if not response.ok:

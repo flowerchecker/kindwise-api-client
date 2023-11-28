@@ -336,7 +336,12 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
 
     api.identify(image_path, custom_id=1)
     request_record = requests_mock.request_history.pop()
-    assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'custom_id': 'custom-id'}
+    assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'custom_id': 1}
+
+    date = '2023-11-28T08:38:48.538187+00:00'
+    api.identify(image_path, date_time=date)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'datetime': date}
 
 
 @pytest.fixture
@@ -556,8 +561,11 @@ def test_requests_to_plant_server(api: PlantApi, image_path):
     run_test_requests_to_server(api, system_name, image_path, PlantIdentification)
     with staging_api(api, system_name) as api:
         custom_id = random.randint(1000000, 2000000)
-        print(f'Health assessment asynchronous with {custom_id=}:')
-        health_assessment = api.health_assessment(image_path, asynchronous=True, custom_id=custom_id)
+        date_time = datetime.now()
+        print(f'Health assessment asynchronous with {custom_id=} and {date_time=}:')
+        health_assessment = api.health_assessment(
+            image_path, asynchronous=True, custom_id=custom_id, date_time=date_time
+        )
         print(health_assessment)
         print()
 
@@ -576,6 +584,7 @@ def test_requests_to_plant_server(api: PlantApi, image_path):
         assert health_assessment.feedback.comment == 'correct'
         assert health_assessment.feedback.rating == 5
         assert health_assessment.custom_id == custom_id
+        assert health_assessment.input.datetime == date_time
 
         print('Deleting health assessment:')
         assert api.delete_health_assessment(health_assessment.access_token)
