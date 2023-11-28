@@ -549,12 +549,21 @@ def test_requests_to_plant_server(api: PlantApi, image_path):
         health_assessment = api.health_assessment(image_path, asynchronous=True)
         print(health_assessment)
         print()
+
+        print('Feedback for health assessment:')
+        assert api.feedback(health_assessment.access_token, comment='correct', rating=5)
+
         health_assessment = api.get_health_assessment(
             health_assessment.access_token, full_disease_list=True, language='cz', details=['treatment']
         )
         print('Health assessment with treatment details, cz language and full_disease_list:')
         print(health_assessment)
         print()
+        assert isinstance(health_assessment, HealthAssessment)
+        assert 'treatment' in health_assessment.result.disease.suggestions[0].details
+        assert health_assessment.result.disease.suggestions[0].details['language'] == 'cz'
+        assert health_assessment.feedback.comment == 'correct'
+        assert health_assessment.feedback.rating == 5
 
         print('Deleting health assessment:')
         assert api.delete_health_assessment(health_assessment.access_token)
