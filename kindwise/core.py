@@ -57,7 +57,7 @@ class KindwiseApi(abc.ABC):
         asynchronous: bool = False,
         as_dict: bool = False,
         **kwargs,
-    ) -> Identification:
+    ) -> Identification | dict:
         if not isinstance(image, list):
             image = [image]
 
@@ -85,7 +85,7 @@ class KindwiseApi(abc.ABC):
 
     def get_identification(
         self, token: str, details: str | list[str] = None, language: str | list[str] = None, as_dict: bool = False
-    ) -> Identification:
+    ) -> Identification | dict:
         url = f'{self.identification_url}/{token}{self.__build_query(details, language)}'
         response = self._make_api_call(url, 'GET')
         if not response.ok:
