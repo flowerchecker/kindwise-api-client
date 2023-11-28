@@ -128,6 +128,95 @@ class Identification:
 
 
 @dataclass
+class ResultEvaluation:
+    probability: float
+    binary: bool
+    threshold: float
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            probability=data['probability'],
+            binary=data['binary'],
+            threshold=data['threshold'],
+        )
+
+
+@dataclass
+class PlantResult:
+    is_plant: ResultEvaluation
+    is_healthy: ResultEvaluation | None
+    classification: Classification
+    disease: Classification | None
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            is_plant=ResultEvaluation.from_dict(data['is_plant']),
+            is_healthy=ResultEvaluation.from_dict(data['is_healthy']) if 'is_healthy' in data else None,
+            classification=Classification.from_dict(data['classification']),
+            disease=Classification.from_dict(data['disease']) if 'disease' in data else None,
+        )
+
+
+@dataclass
+class PlantIdentification(Identification):
+    result: PlantResult
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            access_token=data['access_token'],
+            model_version=data['model_version'],
+            custom_id=data['custom_id'],
+            input=Input.from_dict(data['input']),
+            result=None if 'result' not in data else PlantResult.from_dict(data['result']),
+            status=data['status'],
+            sla_compliant_client=data['sla_compliant_client'],
+            sla_compliant_system=data['sla_compliant_system'],
+            created=datetime.fromtimestamp(data['created']),
+            completed=None if data['completed'] is None else datetime.fromtimestamp(data['completed']),
+            feedback=Feedback.from_dict(data['feedback']) if 'feedback' in data else None,
+        )
+
+
+@dataclass
+class HealthAssessmentResult:
+    is_plant: ResultEvaluation
+    is_healthy: ResultEvaluation
+    disease: Classification
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            is_plant=ResultEvaluation.from_dict(data['is_plant']),
+            is_healthy=ResultEvaluation.from_dict(data['is_healthy']),
+            disease=Classification.from_dict(data['disease']),
+        )
+
+
+@dataclass
+class HealthAssessment(Identification):
+    result: HealthAssessmentResult | None
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            access_token=data['access_token'],
+            model_version=data['model_version'],
+            custom_id=data['custom_id'],
+            input=Input.from_dict(data['input']),
+            result=None if 'result' not in data else HealthAssessmentResult.from_dict(data['result']),
+            status=data['status'],
+            sla_compliant_client=data['sla_compliant_client'],
+            sla_compliant_system=data['sla_compliant_system'],
+            created=datetime.fromtimestamp(data['created']),
+            completed=None if data['completed'] is None else datetime.fromtimestamp(data['completed']),
+            feedback=Feedback.from_dict(data['feedback']) if 'feedback' in data else None,
+        )
+
+
+@dataclass
 class Limits:
     day: int | None
     week: int | None

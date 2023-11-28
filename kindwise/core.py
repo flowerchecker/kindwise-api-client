@@ -37,6 +37,9 @@ class KindwiseApi(abc.ABC):
         similar_images: bool = True,
         latitude_longitude: tuple[float, float] = None,
     ):
+        if not isinstance(image, list):
+            image = [image]
+
         def encode_file(file_name):
             with open(file_name, 'rb') as file:
                 return base64.b64encode(file.read()).decode('ascii')
@@ -58,19 +61,17 @@ class KindwiseApi(abc.ABC):
         as_dict: bool = False,
         **kwargs,
     ) -> Identification | dict:
-        if not isinstance(image, list):
-            image = [image]
-
         payload = self._build_payload(image, **kwargs)
-        url = f'{self.identification_url}{self.__build_query(details, language, asynchronous)}'
+        url = f'{self.identification_url}{self._build_query(details, language, asynchronous)}'
         response = self._make_api_call(url, 'POST', payload)
         if not response.ok:
             raise ValueError(f'Error while creating an identification: {response.status_code=} {response.text=}')
         data = response.json()
         return data if as_dict else Identification.from_dict(response.json())
 
-    @staticmethod
-    def __build_query(details: str | list[str] = None, language: str | list[str] = None, asynchronous: bool = False):
+    def _build_query(
+        self, details: str | list[str] = None, language: str | list[str] = None, asynchronous: bool = False
+    ):
         if isinstance(details, str):
             details = [details]
         details_query = '' if details is None else f'details={",".join(details)}&'
@@ -86,7 +87,7 @@ class KindwiseApi(abc.ABC):
     def get_identification(
         self, token: str, details: str | list[str] = None, language: str | list[str] = None, as_dict: bool = False
     ) -> Identification | dict:
-        url = f'{self.identification_url}/{token}{self.__build_query(details, language)}'
+        url = f'{self.identification_url}/{token}{self._build_query(details, language)}'
         response = self._make_api_call(url, 'GET')
         if not response.ok:
             raise ValueError(f'Error while getting an identification: {response.status_code=} {response.text=}')
