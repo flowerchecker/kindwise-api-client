@@ -33,6 +33,7 @@ class InsectApi(KindwiseApi):
         as_dict: bool = False,
         similar_images: bool = True,
         latitude_longitude: tuple[float, float] = None,
+        custom_id: int | None = None,
     ) -> Identification:
         return super().identify(
             image=image,
@@ -42,4 +43,5 @@ class InsectApi(KindwiseApi):
             as_dict=as_dict,
             similar_images=similar_images,
             latitude_longitude=latitude_longitude,
+            custom_id=custom_id,
         )

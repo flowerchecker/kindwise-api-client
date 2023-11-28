@@ -36,6 +36,7 @@ class KindwiseApi(abc.ABC):
         image: Path | str | list[str] | list[Path],
         similar_images: bool = True,
         latitude_longitude: tuple[float, float] = None,
+        custom_id: int | None = None,
     ):
         if not isinstance(image, list):
             image = [image]
@@ -50,6 +51,8 @@ class KindwiseApi(abc.ABC):
         }
         if latitude_longitude is not None:
             payload['latitude'], payload['longitude'] = latitude_longitude
+        if custom_id is not None:
+            payload['custom_id'] = custom_id
         return payload
 
     def identify(

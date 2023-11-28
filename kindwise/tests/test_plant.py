@@ -1,4 +1,5 @@
 import base64
+import random
 from datetime import datetime
 
 import pytest
@@ -333,6 +334,10 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     request_record = requests_mock.request_history.pop()
     assert request_record.json() == {'images': [image_base64], 'similar_images': True}
 
+    api.identify(image_path, custom_id=1)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'custom_id': 'custom-id'}
+
 
 @pytest.fixture
 def health_assessment():
@@ -501,6 +506,11 @@ def test_health_assessment(
     )
     assert request_record.json() == {'images': [image_base64], 'similar_images': True}
 
+    response = api.health_assessment(image_path, custom_id=1)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == api.health_assessment_url
+    assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'custom_id': 1}
+
 
 def test_get_health_assessment(api, api_key, health_assessment_dict, health_assessment, requests_mock):
     requests_mock.get(f'{api.identification_url}/{health_assessment_dict["access_token"]}', json=health_assessment_dict)
@@ -545,8 +555,9 @@ def test_requests_to_plant_server(api: PlantApi, image_path):
     system_name = 'plant'
     run_test_requests_to_server(api, system_name, image_path, PlantIdentification)
     with staging_api(api, system_name) as api:
-        print('Health assessment asynchronous:')
-        health_assessment = api.health_assessment(image_path, asynchronous=True)
+        custom_id = random.randint(1000000, 2000000)
+        print(f'Health assessment asynchronous with {custom_id=}:')
+        health_assessment = api.health_assessment(image_path, asynchronous=True, custom_id=custom_id)
         print(health_assessment)
         print()
 
@@ -564,6 +575,7 @@ def test_requests_to_plant_server(api: PlantApi, image_path):
         assert health_assessment.result.disease.suggestions[0].details['language'] == 'cz'
         assert health_assessment.feedback.comment == 'correct'
         assert health_assessment.feedback.rating == 5
+        assert health_assessment.custom_id == custom_id
 
         print('Deleting health assessment:')
         assert api.delete_health_assessment(health_assessment.access_token)

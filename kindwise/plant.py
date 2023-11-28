@@ -28,16 +28,8 @@ class PlantApi(KindwiseApi):
     def health_assessment_url(self):
         return f'{self.host}/api/v3/health_assessment'
 
-    def _build_payload(
-        self,
-        image: Path | str | list[str] | list[Path],
-        similar_images: bool = True,
-        latitude_longitude: tuple[float, float] = None,
-        health: bool = False,
-    ):
-        payload = super()._build_payload(
-            image=image, similar_images=similar_images, latitude_longitude=latitude_longitude
-        )
+    def _build_payload(self, image: Path | str | list[str] | list[Path], health: bool = False, **kwargs):
+        payload = super()._build_payload(image, **kwargs)
         if health:
             payload['health'] = 'all'
         return payload
@@ -51,6 +43,7 @@ class PlantApi(KindwiseApi):
         similar_images: bool = True,
         latitude_longitude: tuple[float, float] = None,
         health: bool = False,
+        custom_id: int | None = None,
         as_dict: bool = False,
     ) -> PlantIdentification | dict:
         identification = super().identify(
@@ -61,6 +54,7 @@ class PlantApi(KindwiseApi):
             similar_images=similar_images,
             latitude_longitude=latitude_longitude,
             health=health,
+            custom_id=custom_id,
             as_dict=True,
         )
         return identification if as_dict else PlantIdentification.from_dict(identification)
@@ -96,11 +90,14 @@ class PlantApi(KindwiseApi):
         similar_images: bool = True,
         latitude_longitude: tuple[float, float] = None,
         full_disease_list: bool = False,
+        custom_id: int | None = None,
         as_dict: bool = False,
     ) -> HealthAssessment | dict:
         query = self._build_query(details, language, asynchronous, full_disease_list=full_disease_list)
         url = f'{self.health_assessment_url}{query}'
-        payload = self._build_payload(image, similar_images=similar_images, latitude_longitude=latitude_longitude)
+        payload = self._build_payload(
+            image, similar_images=similar_images, latitude_longitude=latitude_longitude, custom_id=custom_id
+        )
         response = self._make_api_call(url, 'POST', payload)
         if not response.ok:
             raise ValueError(f'Error while creating a health assessment: {response.status_code=} {response.text=}')

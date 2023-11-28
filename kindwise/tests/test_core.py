@@ -186,6 +186,14 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     request_record = requests_mock.request_history.pop()
     assert request_record.url == f'{api.identification_url}?async=true'
 
+    api.identify(image_path, custom_id=1)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.json() == {
+        'images': [image_base64],
+        'similar_images': True,
+        'custom_id': 1,
+    }
+
 
 def test_get_identification(api, api_key, identification, identification_dict, image_path, requests_mock):
     requests_mock.get(

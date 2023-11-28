@@ -1,4 +1,5 @@
 import os
+import random
 from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
@@ -36,21 +37,24 @@ def run_test_requests_to_server(api, system_name, image_path, identification_typ
         print('Usage info:')
         print(usage_info)
         print()
-        identification = api.identify(image_path, latitude_longitude=(1.0, 2.0), asynchronous=True)
+
+        custom_id = random.randint(1000000, 2000000)
+        identification = api.identify(image_path, latitude_longitude=(1.0, 2.0), asynchronous=True, custom_id=custom_id)
         assert isinstance(identification, identification_type)
-        print('Identification created with async:')
+        print(f'Identification created with async and {custom_id=}:')
         print(identification)
         print()
         assert api.feedback(identification.access_token, comment='correct', rating=5)
 
         identification = api.get_identification(identification.access_token, details=['image'], language='cz')
-        print('Identification with image details and cz language:')
+        print('Identification with image details, custom id and cz language:')
         print(identification)
         assert isinstance(identification, identification_type)
         assert 'image' in identification.result.classification.suggestions[0].details
         assert identification.result.classification.suggestions[0].details['language'] == 'cz'
         assert identification.feedback.comment == 'correct'
         assert identification.feedback.rating == 5
+        assert identification.custom_id == custom_id
 
         assert api.delete_identification(identification.access_token)
 
