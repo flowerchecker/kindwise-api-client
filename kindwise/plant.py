@@ -64,7 +64,7 @@ class PlantApi(KindwiseApi):
 
     def get_identification(
         self, token: str, details: str | list[str] = None, language: str | list[str] = None, as_dict: bool = False
-    ) -> Identification:
+    ) -> PlantIdentification | dict:
         identification = super().get_identification(token=token, details=details, language=language, as_dict=True)
         return identification if as_dict else PlantIdentification.from_dict(identification)
 
