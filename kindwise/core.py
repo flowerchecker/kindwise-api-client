@@ -112,7 +112,7 @@ class KindwiseApi(abc.ABC):
         return '' if query == '?' else query
 
     def get_identification(
-        self, token: str, details: str | list[str] = None, language: str | list[str] = None, as_dict: bool = False
+        self, token: str | int, details: str | list[str] = None, language: str | list[str] = None, as_dict: bool = False
     ) -> Identification | dict:
         url = f'{self.identification_url}/{token}{self._build_query(details, language)}'
         response = self._make_api_call(url, 'GET')
@@ -121,8 +121,8 @@ class KindwiseApi(abc.ABC):
         data = response.json()
         return data if as_dict else Identification.from_dict(response.json())
 
-    def delete_identification(self, identification: Identification | str) -> bool:
-        token = identification if isinstance(identification, str) else identification.access_token
+    def delete_identification(self, identification: Identification | str | int) -> bool:
+        token = identification.access_token if isinstance(identification, Identification) else identification
         url = f'{self.identification_url}/{token}'
         response = self._make_api_call(url, 'DELETE')
         if not response.ok:
@@ -136,8 +136,10 @@ class KindwiseApi(abc.ABC):
         data = response.json()
         return data if as_dict else UsageInfo.from_dict(response.json())
 
-    def feedback(self, token: Identification | str, comment: str | None = None, rating: int | None = None) -> bool:
-        token = token if isinstance(token, str) else token.access_token
+    def feedback(
+        self, identification: Identification | str | int, comment: str | None = None, rating: int | None = None
+    ) -> bool:
+        token = identification.access_token if isinstance(identification, Identification) else identification
         if comment is None and rating is None:
             raise ValueError('Either comment or rating must be provided')
         data = {}

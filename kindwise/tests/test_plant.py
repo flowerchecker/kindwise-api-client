@@ -555,6 +555,20 @@ def test_delete_health_assessment(api, api_key, health_assessment, requests_mock
     request_record = requests_mock.request_history.pop()
     assert request_record.url == f'{api.identification_url}/{health_assessment.access_token}'
 
+    health_assessment.custom_id = 123
+    requests_mock.delete(f'{api.identification_url}/{health_assessment.custom_id}', json=True)
+    response = api.delete_health_assessment(health_assessment.custom_id)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.identification_url}/{health_assessment.custom_id}'
+
+
+def test_delete_plant_identification(api, api_key, identification, requests_mock):
+    identification.custom_id = 123
+    requests_mock.delete(f'{api.identification_url}/{identification.custom_id}', json=True)
+    response = api.delete_identification(identification.custom_id)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.identification_url}/{identification.custom_id}'
+
 
 def test_requests_to_plant_server(api: PlantApi, image_path):
     system_name = 'plant'

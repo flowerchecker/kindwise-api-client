@@ -63,7 +63,7 @@ class PlantApi(KindwiseApi):
         return identification if as_dict else PlantIdentification.from_dict(identification)
 
     def get_identification(
-        self, token: str, details: str | list[str] = None, language: str | list[str] = None, as_dict: bool = False
+        self, token: str | int, details: str | list[str] = None, language: str | list[str] = None, as_dict: bool = False
     ) -> PlantIdentification | dict:
         identification = super().get_identification(token=token, details=details, language=language, as_dict=True)
         return identification if as_dict else PlantIdentification.from_dict(identification)
@@ -114,7 +114,7 @@ class PlantApi(KindwiseApi):
 
     def get_health_assessment(
         self,
-        token: str,
+        token: str | int,
         details: str | list[str] = None,
         language: str | list[str] = None,
         full_disease_list: bool = False,
@@ -128,5 +128,5 @@ class PlantApi(KindwiseApi):
         health_assessment = response.json()
         return health_assessment if as_dict else HealthAssessment.from_dict(health_assessment)
 
-    def delete_health_assessment(self, identification: HealthAssessment | str) -> bool:
+    def delete_health_assessment(self, identification: HealthAssessment | str | int) -> bool:
         return self.delete_identification(identification)
