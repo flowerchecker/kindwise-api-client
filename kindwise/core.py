@@ -39,6 +39,7 @@ class KindwiseApi(abc.ABC):
         latitude_longitude: tuple[float, float] = None,
         custom_id: int | None = None,
         date_time: datetime | str | float | None = None,
+        **kwargs,
     ):
         if not isinstance(image, list):
             image = [image]
@@ -74,9 +75,20 @@ class KindwiseApi(abc.ABC):
         language: str | list[str] = None,
         asynchronous: bool = False,
         as_dict: bool = False,
+        similar_images: bool = True,
+        latitude_longitude: tuple[float, float] = None,
+        custom_id: int | None = None,
+        date_time: datetime | str | float | None = None,
         **kwargs,
     ) -> Identification | dict:
-        payload = self._build_payload(image, **kwargs)
+        payload = self._build_payload(
+            image,
+            similar_images=similar_images,
+            latitude_longitude=latitude_longitude,
+            custom_id=custom_id,
+            date_time=date_time,
+            **kwargs,
+        )
         url = f'{self.identification_url}{self._build_query(details, language, asynchronous)}'
         response = self._make_api_call(url, 'POST', payload)
         if not response.ok:
