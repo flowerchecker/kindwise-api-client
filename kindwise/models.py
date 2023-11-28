@@ -84,6 +84,19 @@ class Input:
 
 
 @dataclass
+class Feedback:
+    rating: int
+    comment: str
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'Feedback':
+        return cls(
+            rating=data.get('rating'),
+            comment=data.get('comment'),
+        )
+
+
+@dataclass
 class Identification:
     access_token: str
     model_version: str
@@ -95,6 +108,7 @@ class Identification:
     sla_compliant_system: bool
     created: datetime
     completed: datetime | None
+    feedback: Feedback | None
 
     @classmethod
     def from_dict(cls, data: dict) -> 'Identification':
@@ -109,6 +123,7 @@ class Identification:
             sla_compliant_system=data['sla_compliant_system'],
             created=datetime.fromtimestamp(data['created']),
             completed=None if data['completed'] is None else datetime.fromtimestamp(data['completed']),
+            feedback=Feedback.from_dict(data['feedback']) if 'feedback' in data else None,
         )
 
 
