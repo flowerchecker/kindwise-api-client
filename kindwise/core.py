@@ -1,11 +1,21 @@
 import abc
 import base64
+import enum
+import io
 from datetime import datetime
 from pathlib import Path
+from typing import BinaryIO
 
 import requests
 
 from kindwise.models import Identification, UsageInfo
+
+
+class InputType(str, enum.Enum):
+    PATH = 'path'
+    BASE64 = 'base64'
+    STREAM = 'stream'
+    FILE = 'file'
 
 
 class KindwiseApi(abc.ABC):
@@ -35,6 +45,7 @@ class KindwiseApi(abc.ABC):
     def _build_payload(
         self,
         image: Path | str | list[str] | list[Path],
+        input_type: InputType,
         similar_images: bool = True,
         latitude_longitude: tuple[float, float] = None,
         custom_id: int | None = None,
@@ -44,9 +55,54 @@ class KindwiseApi(abc.ABC):
         if not isinstance(image, list):
             image = [image]
 
-        def encode_file(file_name):
-            with open(file_name, 'rb') as file:
+        def handle_base64_stream(file: str | bytes) -> str:
+            try:
+                sb_bytes = bytes(file, 'ascii') if isinstance(file, str) else file
+                if base64.b64encode(base64.b64decode(sb_bytes)) == sb_bytes:
+                    return sb_bytes.decode('ascii')
+                raise ValueError('Invalid base64 stream')
+            except Exception:
+                raise ValueError('Invalid base64 stream')
+
+        def handle_stream(file: str | bytes) -> str:
+            sb_bytes = bytes(file, 'ascii') if isinstance(file, str) else file
+            return base64.b64encode(sb_bytes).decode('ascii')
+
+        def handle_path(file: str | Path) -> str:
+            file = file if isinstance(file, Path) else Path(file)
+            if not file.is_file():
+                raise ValueError(f'File {file} does not exist')
+            with open(file, 'rb') as file:
                 return base64.b64encode(file.read()).decode('ascii')
+
+        def handle_file_object(file: io.IOBase) -> str:
+            if 'b' not in file.mode:
+                raise ValueError('File must be opened in a binary mode')
+            content = file.read()
+            try:
+                return base64.b64encode(content).decode('ascii')
+            except (base64.binascii.Error, UnicodeDecodeError) as e:
+                raise ValueError(f'Unable to decode {file=} to base64')
+
+        def encode_file(file: str | bytes | Path | io.BytesIO) -> str:
+            if input_type == InputType.PATH:
+                if not isinstance(file, str) and not isinstance(file, Path):
+                    raise ValueError(f'Invalid file type {type(file)=} for {input_type=}, expected str or Path')
+                return handle_path(file)
+            elif input_type == InputType.BASE64:
+                if not isinstance(file, str) and not isinstance(file, bytes):
+                    raise ValueError(f'Invalid file type {type(file)=} for {input_type=}, expected str or bytes')
+                return handle_base64_stream(file)
+            elif input_type == InputType.STREAM:
+                if not isinstance(file, str) and not isinstance(file, bytes):
+                    raise ValueError(f'Invalid file type {type(file)=} for {input_type=}, expected str or bytes')
+                return handle_stream(file)
+            elif input_type == InputType.FILE:
+                if not isinstance(file, io.IOBase):
+                    raise ValueError(f'Invalid file type {type(file)=} for {input_type=}, expected file object')
+                return handle_file_object(file)
+            else:
+                raise ValueError(f'Invalid input type {input_type=}')
 
         payload = {
             'images': [encode_file(img) for img in image],
@@ -70,7 +126,8 @@ class KindwiseApi(abc.ABC):
 
     def identify(
         self,
-        image: Path | str | list[str] | list[Path],
+        image: Path | str | bytes | BinaryIO | list[str | Path | bytes | BinaryIO],
+        input_type: InputType = InputType.PATH,
         details: str | list[str] = None,
         language: str | list[str] = None,
         asynchronous: bool = False,
@@ -83,6 +140,7 @@ class KindwiseApi(abc.ABC):
     ) -> Identification | dict:
         payload = self._build_payload(
             image,
+            input_type,
             similar_images=similar_images,
             latitude_longitude=latitude_longitude,
             custom_id=custom_id,

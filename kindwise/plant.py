@@ -1,9 +1,10 @@
 from datetime import datetime
 from pathlib import Path
+from typing import BinaryIO
 
 from kindwise import settings
-from kindwise.core import KindwiseApi
-from kindwise.models import Identification, PlantIdentification, HealthAssessment
+from kindwise.core import KindwiseApi, InputType
+from kindwise.models import PlantIdentification, HealthAssessment
 
 
 class PlantApi(KindwiseApi):
@@ -29,15 +30,18 @@ class PlantApi(KindwiseApi):
     def health_assessment_url(self):
         return f'{self.host}/api/v3/health_assessment'
 
-    def _build_payload(self, image: Path | str | list[str] | list[Path], health: bool = False, **kwargs):
-        payload = super()._build_payload(image, **kwargs)
+    def _build_payload(
+        self, image: Path | str | list[str] | list[Path], input_type: InputType, health: bool = False, **kwargs
+    ):
+        payload = super()._build_payload(image, input_type, **kwargs)
         if health:
             payload['health'] = 'all'
         return payload
 
     def identify(
         self,
-        image: Path | str | list[str] | list[Path],
+        image: Path | str | bytes | BinaryIO | list[str | Path | bytes | BinaryIO],
+        input_type: InputType = InputType.PATH,
         details: str | list[str] = None,
         language: str | list[str] = None,
         asynchronous: bool = False,
@@ -58,6 +62,7 @@ class PlantApi(KindwiseApi):
             health=health,
             custom_id=custom_id,
             date_time=date_time,
+            input_type=input_type,
             as_dict=True,
         )
         return identification if as_dict else PlantIdentification.from_dict(identification)
@@ -86,7 +91,7 @@ class PlantApi(KindwiseApi):
 
     def health_assessment(
         self,
-        image: Path | str | list[str] | list[Path],
+        image: Path | str | bytes | BinaryIO | list[str | Path | bytes | BinaryIO],
         details: str | list[str] = None,
         language: str | list[str] = None,
         asynchronous: bool = False,
@@ -95,12 +100,14 @@ class PlantApi(KindwiseApi):
         full_disease_list: bool = False,
         custom_id: int | None = None,
         date_time: datetime | str | float | None = None,
+        input_type: InputType = InputType.PATH,
         as_dict: bool = False,
     ) -> HealthAssessment | dict:
         query = self._build_query(details, language, asynchronous, full_disease_list=full_disease_list)
         url = f'{self.health_assessment_url}{query}'
         payload = self._build_payload(
             image,
+            input_type=input_type,
             similar_images=similar_images,
             latitude_longitude=latitude_longitude,
             custom_id=custom_id,

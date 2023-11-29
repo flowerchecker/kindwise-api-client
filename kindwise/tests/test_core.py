@@ -6,6 +6,7 @@ import pytest
 from kindwise.insect import InsectApi
 from kindwise.models import Identification, Result, Input, Classification, Suggestion, SimilarImage
 from .conftest import IMAGE_DIR
+from ..core import InputType
 
 
 @pytest.fixture
@@ -206,6 +207,60 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'datetime': date}
     with pytest.raises(ValueError):
         api.identify(image_path, date_time='2023-20-20')
+
+    # accept image as base64 string
+    api.identify(image_base64, input_type=InputType.BASE64)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.json() == {
+        'images': [image_base64],
+        'similar_images': True,
+    }
+
+    # accept image as base64 bytes
+    api.identify(image_base64.encode('ascii'), input_type=InputType.BASE64)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.json() == {
+        'images': [image_base64],
+        'similar_images': True,
+    }
+
+    # accept image as a file object
+    with open(image_path, 'rb') as f:
+        api.identify(f, input_type=InputType.FILE)
+        request_record = requests_mock.request_history.pop()
+        assert request_record.json() == {
+            'images': [image_base64],
+            'similar_images': True,
+        }
+
+    # accept image as a byte stream
+    with open(image_path, 'rb') as f:
+        image = f.read()
+        api.identify(image, input_type=InputType.STREAM)
+        request_record = requests_mock.request_history.pop()
+        assert request_record.json() == {
+            'images': [image_base64],
+            'similar_images': True,
+        }
+
+    # checks for bad inputs
+    with pytest.raises(ValueError, match='File does/not/exist.jpg does not exist'):  # path does not exist
+        api.identify('does/not/exist.jpg')
+
+    with pytest.raises(ValueError, match='Invalid base64 stream'):  # invalid base64 string
+        api.identify('invalid', input_type=InputType.BASE64)
+
+    with pytest.raises(ValueError, match='Invalid base64 stream'):  # invalid base64 bytes
+        api.identify(b'invalid', input_type=InputType.BASE64)
+
+    with pytest.raises(ValueError, match='File must be opened in a binary mode'):  # invalid file object
+        with open(image_path, 'r') as f:
+            api.identify(f, input_type=InputType.FILE)
+
+    with pytest.raises(ValueError, match='Invalid base64 stream'):  # sending stream instead of base64
+        with open(image_path, 'rb') as f:
+            image = f.read()
+            api.identify(image, input_type=InputType.BASE64)
 
 
 def test_get_identification(api, api_key, identification, identification_dict, image_path, requests_mock):
