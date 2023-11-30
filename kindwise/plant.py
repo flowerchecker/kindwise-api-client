@@ -50,7 +50,7 @@ class PlantApi(KindwiseApi):
         health: bool = False,
         custom_id: int | None = None,
         date_time: datetime | str | float | None = None,
-        max_image_size: int = None,
+        max_image_size: int | None = 1500,
         as_dict: bool = False,
     ) -> PlantIdentification | dict:
         identification = super().identify(
@@ -102,7 +102,7 @@ class PlantApi(KindwiseApi):
         full_disease_list: bool = False,
         custom_id: int | None = None,
         date_time: datetime | str | float | None = None,
-        max_image_size: int = None,
+        max_image_size: int | None = 1500,
         input_type: InputType = InputType.PATH,
         as_dict: bool = False,
     ) -> HealthAssessment | dict:
