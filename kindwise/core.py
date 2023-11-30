@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import BinaryIO
 
 import requests
+from PIL import Image
 
 from kindwise.models import Identification, UsageInfo
 
@@ -50,59 +51,58 @@ class KindwiseApi(abc.ABC):
         latitude_longitude: tuple[float, float] = None,
         custom_id: int | None = None,
         date_time: datetime | str | float | None = None,
+        max_image_size: int = None,
         **kwargs,
     ):
         if not isinstance(image, list):
             image = [image]
 
-        def handle_base64_stream(file: str | bytes) -> str:
-            try:
-                sb_bytes = bytes(file, 'ascii') if isinstance(file, str) else file
-                if base64.b64encode(base64.b64decode(sb_bytes)) == sb_bytes:
-                    return sb_bytes.decode('ascii')
-                raise ValueError('Invalid base64 stream')
-            except Exception:
-                raise ValueError('Invalid base64 stream')
-
-        def handle_stream(file: str | bytes) -> str:
-            sb_bytes = bytes(file, 'ascii') if isinstance(file, str) else file
-            return base64.b64encode(sb_bytes).decode('ascii')
-
-        def handle_path(file: str | Path) -> str:
-            file = file if isinstance(file, Path) else Path(file)
-            if not file.is_file():
-                raise ValueError(f'File {file} does not exist')
-            with open(file, 'rb') as file:
-                return base64.b64encode(file.read()).decode('ascii')
-
-        def handle_file_object(file: io.IOBase) -> str:
-            if 'b' not in file.mode:
-                raise ValueError('File must be opened in a binary mode')
-            content = file.read()
-            try:
-                return base64.b64encode(content).decode('ascii')
-            except (base64.binascii.Error, UnicodeDecodeError) as e:
-                raise ValueError(f'Unable to decode {file=} to base64')
+        def resize_image(file) -> str:
+            img = Image.open(file)
+            if max(img.size) <= max_image_size:
+                resized_image = img
+            else:
+                aspect_ratio = img.width / img.height
+                new_width = max_image_size if aspect_ratio >= 1 else int(max_image_size * aspect_ratio)
+                new_height = int(new_width / aspect_ratio)
+                resized_image = img.resize((new_width, new_height))
+            output_buffer = io.BytesIO()
+            resized_image.save(output_buffer, format='JPEG')
+            resized_image_bytes = output_buffer.getvalue()
+            return base64.b64encode(resized_image_bytes).decode('utf-8')
 
         def encode_file(file: str | bytes | Path | io.BytesIO) -> str:
             if input_type == InputType.PATH:
                 if not isinstance(file, str) and not isinstance(file, Path):
                     raise ValueError(f'Invalid file type {type(file)=} for {input_type=}, expected str or Path')
-                return handle_path(file)
+                buffer = open(file, 'rb')
             elif input_type == InputType.BASE64:
                 if not isinstance(file, str) and not isinstance(file, bytes):
                     raise ValueError(f'Invalid file type {type(file)=} for {input_type=}, expected str or bytes')
-                return handle_base64_stream(file)
+                sb_bytes = file.encode('utf-8') if isinstance(file, str) else file
+                try:
+                    decoded = base64.b64decode(sb_bytes)
+                    if base64.b64encode(decoded) != sb_bytes:
+                        raise ValueError('Invalid base64 stream')
+                except Exception:
+                    raise ValueError('Invalid base64 stream')
+                buffer = io.BytesIO(decoded)
             elif input_type == InputType.STREAM:
                 if not isinstance(file, str) and not isinstance(file, bytes):
                     raise ValueError(f'Invalid file type {type(file)=} for {input_type=}, expected str or bytes')
-                return handle_stream(file)
+                sb_bytes = bytes(file, 'ascii') if isinstance(file, str) else file
+                buffer = io.BytesIO(sb_bytes)
             elif input_type == InputType.FILE:
                 if not isinstance(file, io.IOBase):
                     raise ValueError(f'Invalid file type {type(file)=} for {input_type=}, expected file object')
-                return handle_file_object(file)
+                if 'b' not in file.mode:
+                    raise ValueError('File must be opened in a binary mode')
+                buffer = file
             else:
                 raise ValueError(f'Invalid input type {input_type=}')
+            res = base64.b64encode(buffer.read()).decode('ascii') if max_image_size is None else resize_image(buffer)
+            buffer.close()
+            return res
 
         payload = {
             'images': [encode_file(img) for img in image],
@@ -136,6 +136,7 @@ class KindwiseApi(abc.ABC):
         latitude_longitude: tuple[float, float] = None,
         custom_id: int | None = None,
         date_time: datetime | str | float | None = None,
+        max_image_size: int = None,
         **kwargs,
     ) -> Identification | dict:
         payload = self._build_payload(
@@ -145,6 +146,7 @@ class KindwiseApi(abc.ABC):
             latitude_longitude=latitude_longitude,
             custom_id=custom_id,
             date_time=date_time,
+            max_image_size=max_image_size,
             **kwargs,
         )
         url = f'{self.identification_url}{self._build_query(details, language, asynchronous)}'

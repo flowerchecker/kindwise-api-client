@@ -50,6 +50,7 @@ class PlantApi(KindwiseApi):
         health: bool = False,
         custom_id: int | None = None,
         date_time: datetime | str | float | None = None,
+        max_image_size: int = None,
         as_dict: bool = False,
     ) -> PlantIdentification | dict:
         identification = super().identify(
@@ -62,6 +63,7 @@ class PlantApi(KindwiseApi):
             health=health,
             custom_id=custom_id,
             date_time=date_time,
+            max_image_size=max_image_size,
             input_type=input_type,
             as_dict=True,
         )
@@ -100,6 +102,7 @@ class PlantApi(KindwiseApi):
         full_disease_list: bool = False,
         custom_id: int | None = None,
         date_time: datetime | str | float | None = None,
+        max_image_size: int = None,
         input_type: InputType = InputType.PATH,
         as_dict: bool = False,
     ) -> HealthAssessment | dict:
@@ -112,6 +115,7 @@ class PlantApi(KindwiseApi):
             latitude_longitude=latitude_longitude,
             custom_id=custom_id,
             date_time=date_time,
+            max_image_size=max_image_size,
         )
         response = self._make_api_call(url, 'POST', payload)
         if not response.ok:

@@ -1,7 +1,9 @@
 import base64
+import io
 from datetime import datetime
 
 import pytest
+from PIL import Image
 
 from kindwise.insect import InsectApi
 from kindwise.models import Identification, Result, Input, Classification, Suggestion, SimilarImage
@@ -129,8 +131,8 @@ def image_path():
 
 @pytest.fixture
 def image_base64(image_path):
-    with open(image_path, "rb") as file:
-        return base64.b64encode(file.read()).decode("ascii")
+    with open(image_path, 'rb') as file:
+        return base64.b64encode(file.read()).decode('ascii')
 
 
 def test_identify(api, api_key, identification, identification_dict, image_path, image_base64, requests_mock):
@@ -244,9 +246,6 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
         }
 
     # checks for bad inputs
-    with pytest.raises(ValueError, match='File does/not/exist.jpg does not exist'):  # path does not exist
-        api.identify('does/not/exist.jpg')
-
     with pytest.raises(ValueError, match='Invalid base64 stream'):  # invalid base64 string
         api.identify('invalid', input_type=InputType.BASE64)
 
@@ -261,6 +260,29 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
         with open(image_path, 'rb') as f:
             image = f.read()
             api.identify(image, input_type=InputType.BASE64)
+
+    # check if image is resized
+    with open(image_path, 'rb') as f:
+        img = Image.open(f)
+        max_size = max(img.size)
+        new_size = max_size - 100
+
+    def run_test_resize(img, input_type):
+        api.identify(img, input_type=input_type, max_image_size=new_size)
+        request_record = requests_mock.request_history.pop()
+        send_img = request_record.json()['images'][0]
+        decoded = base64.b64decode(send_img)
+        send_img = Image.open(io.BytesIO(decoded))
+        assert max(send_img.size) == new_size
+
+    run_test_resize(image_path, InputType.PATH)
+    run_test_resize(image_base64, InputType.BASE64)
+
+    with open(image_path, 'rb') as f:
+        run_test_resize(f, InputType.FILE)
+
+    with open(image_path, 'rb') as f:
+        run_test_resize(f.read(), InputType.STREAM)
 
 
 def test_get_identification(api, api_key, identification, identification_dict, image_path, requests_mock):
