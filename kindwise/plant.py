@@ -31,9 +31,12 @@ class PlantApi(KindwiseApi):
         return f'{self.host}/api/v3/health_assessment'
 
     def _build_payload(
-        self, image: Path | str | list[str] | list[Path], input_type: InputType, health: bool = False, **kwargs
+        self,
+        *args,
+        health: bool = False,
+        **kwargs,
     ):
-        payload = super()._build_payload(image, input_type, **kwargs)
+        payload = super()._build_payload(*args, **kwargs)
         if health:
             payload['health'] = 'all'
         return payload
