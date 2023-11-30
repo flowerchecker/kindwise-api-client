@@ -245,22 +245,6 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
             'similar_images': True,
         }
 
-    # checks for bad inputs
-    with pytest.raises(ValueError, match='Invalid base64 stream'):  # invalid base64 string
-        api.identify('invalid', input_type=InputType.BASE64)
-
-    with pytest.raises(ValueError, match='Invalid base64 stream'):  # invalid base64 bytes
-        api.identify(b'invalid', input_type=InputType.BASE64)
-
-    with pytest.raises(ValueError, match='File must be opened in a binary mode'):  # invalid file object
-        with open(image_path, 'r') as f:
-            api.identify(f, input_type=InputType.FILE)
-
-    with pytest.raises(ValueError, match='Invalid base64 stream'):  # sending stream instead of base64
-        with open(image_path, 'rb') as f:
-            image = f.read()
-            api.identify(image, input_type=InputType.BASE64)
-
     # check if image is resized
     with open(image_path, 'rb') as f:
         img = Image.open(f)

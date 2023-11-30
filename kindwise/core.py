@@ -80,23 +80,13 @@ class KindwiseApi(abc.ABC):
                 if not isinstance(file, str) and not isinstance(file, bytes):
                     raise ValueError(f'Invalid file type {type(file)=} for {input_type=}, expected str or bytes')
                 sb_bytes = file.encode('utf-8') if isinstance(file, str) else file
-                try:
-                    decoded = base64.b64decode(sb_bytes)
-                    if base64.b64encode(decoded) != sb_bytes:
-                        raise ValueError('Invalid base64 stream')
-                except Exception:
-                    raise ValueError('Invalid base64 stream')
-                buffer = io.BytesIO(decoded)
+                buffer = io.BytesIO(base64.b64decode(sb_bytes))
             elif input_type == InputType.STREAM:
                 if not isinstance(file, str) and not isinstance(file, bytes):
                     raise ValueError(f'Invalid file type {type(file)=} for {input_type=}, expected str or bytes')
                 sb_bytes = bytes(file, 'ascii') if isinstance(file, str) else file
                 buffer = io.BytesIO(sb_bytes)
             elif input_type == InputType.FILE:
-                if not isinstance(file, io.IOBase):
-                    raise ValueError(f'Invalid file type {type(file)=} for {input_type=}, expected file object')
-                if 'b' not in file.mode:
-                    raise ValueError('File must be opened in a binary mode')
                 buffer = file
             else:
                 raise ValueError(f'Invalid input type {input_type=}')
