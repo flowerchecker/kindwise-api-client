@@ -118,6 +118,9 @@ health = True
 custom_id = 123
 # when was an image taken, datetime can be specified as a datetime object, timestamp, or string in ISO format
 date_time = datetime.now()
+# default image size is 1500px, can be turned off by setting max_image_size to None
+# be aware that our API has limit 25Mpx(e.g. 5000px x 5000px)
+max_image_size = 1500
 identification: PlantIdentification = api.identify(
     images,
     details=details,
@@ -127,6 +130,7 @@ identification: PlantIdentification = api.identify(
     health=health,
     custom_id=custom_id,
     date_time=date_time,
+    max_image_size=max_image_size,
     input_type=InputType.PATH,  # does not have to be here as default is InputType.PATH
 )
 
@@ -247,6 +251,9 @@ custom_id = 123
 full_disease_list = True
 # when was an image taken, datetime can be specified as a datetime object, timestamp, or string in ISO format
 date_time = datetime.now()
+# default image size is 1500px, can be turned off by setting max_image_size to None
+# be aware that our API has limit 25Mpx(e.g. 5000px x 5000px)
+max_image_size = 1500
 identification: HealthAssessment = api.health_assessment(
     images,
     details=details,
@@ -255,7 +262,8 @@ identification: HealthAssessment = api.health_assessment(
     latitude_longitude=latitude_longitude,
     custom_id=custom_id,
     full_disease_list=full_disease_list,
-    date_time=date_time
+    date_time=date_time,
+    max_image_size=max_image_size,
 )
 ```
 
