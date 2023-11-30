@@ -140,7 +140,7 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
         f'{api.identification_url}',
         json=identification_dict,
     )
-    response_identification = api.identify(image_path)
+    response_identification = api.identify(image_path, max_image_size=None)
     assert len(requests_mock.request_history) == 1
     request_record = requests_mock.request_history.pop()
     assert request_record.method == 'POST'
@@ -155,7 +155,12 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     assert response_identification == identification_dict
 
     response_identification = api.identify(
-        image_path, similar_images=False, details=['image'], language='cz', latitude_longitude=(1.0, 2.0)
+        image_path,
+        similar_images=False,
+        details=['image'],
+        language='cz',
+        latitude_longitude=(1.0, 2.0),
+        max_image_size=None,
     )
     assert len(requests_mock.request_history) == 1
     request_record = requests_mock.request_history.pop()
@@ -174,7 +179,7 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     request_record = requests_mock.request_history.pop()
     assert request_record.url == f'{api.identification_url}?language=cz,de'
 
-    api.identify([image_path, image_path])
+    api.identify([image_path, image_path], max_image_size=None)
     request_record = requests_mock.request_history.pop()
     assert request_record.json() == {
         'images': [image_base64, image_base64],
@@ -189,7 +194,7 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     request_record = requests_mock.request_history.pop()
     assert request_record.url == f'{api.identification_url}?async=true'
 
-    api.identify(image_path, custom_id=1)
+    api.identify(image_path, custom_id=1, max_image_size=None)
     request_record = requests_mock.request_history.pop()
     assert request_record.json() == {
         'images': [image_base64],
@@ -198,20 +203,20 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     }
 
     date = '2023-11-28T08:38:48.538187'
-    api.identify(image_path, date_time=date)
+    api.identify(image_path, date_time=date, max_image_size=None)
     request_record = requests_mock.request_history.pop()
     assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'datetime': date}
-    api.identify(image_path, date_time=datetime.fromisoformat(date))
+    api.identify(image_path, date_time=datetime.fromisoformat(date), max_image_size=None)
     request_record = requests_mock.request_history.pop()
     assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'datetime': date}
-    api.identify(image_path, date_time=datetime.fromisoformat(date).timestamp())
+    api.identify(image_path, date_time=datetime.fromisoformat(date).timestamp(), max_image_size=None)
     request_record = requests_mock.request_history.pop()
     assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'datetime': date}
     with pytest.raises(ValueError):
         api.identify(image_path, date_time='2023-20-20')
 
     # accept image as base64 string
-    api.identify(image_base64, input_type=InputType.BASE64)
+    api.identify(image_base64, input_type=InputType.BASE64, max_image_size=None)
     request_record = requests_mock.request_history.pop()
     assert request_record.json() == {
         'images': [image_base64],
@@ -219,7 +224,7 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     }
 
     # accept image as base64 bytes
-    api.identify(image_base64.encode('ascii'), input_type=InputType.BASE64)
+    api.identify(image_base64.encode('ascii'), input_type=InputType.BASE64, max_image_size=None)
     request_record = requests_mock.request_history.pop()
     assert request_record.json() == {
         'images': [image_base64],
@@ -228,7 +233,7 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
 
     # accept image as a file object
     with open(image_path, 'rb') as f:
-        api.identify(f, input_type=InputType.FILE)
+        api.identify(f, input_type=InputType.FILE, max_image_size=None)
         request_record = requests_mock.request_history.pop()
         assert request_record.json() == {
             'images': [image_base64],
@@ -238,7 +243,7 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     # accept image as a byte stream
     with open(image_path, 'rb') as f:
         image = f.read()
-        api.identify(image, input_type=InputType.STREAM)
+        api.identify(image, input_type=InputType.STREAM, max_image_size=None)
         request_record = requests_mock.request_history.pop()
         assert request_record.json() == {
             'images': [image_base64],

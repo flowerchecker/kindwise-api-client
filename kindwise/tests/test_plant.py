@@ -282,7 +282,7 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
         f'{api.identification_url}',
         json=identification_dict,
     )
-    response_identification = api.identify(image_path, health=True)
+    response_identification = api.identify(image_path, health=True, max_image_size=None)
     assert len(requests_mock.request_history) == 1
     request_record = requests_mock.request_history.pop()
     assert request_record.method == 'POST'
@@ -297,7 +297,12 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     assert response_identification == identification_dict
 
     response_identification = api.identify(
-        image_path, similar_images=False, details=['image'], language='cz', latitude_longitude=(1.0, 2.0)
+        image_path,
+        similar_images=False,
+        details=['image'],
+        language='cz',
+        latitude_longitude=(1.0, 2.0),
+        max_image_size=None,
     )
     assert len(requests_mock.request_history) == 1
     request_record = requests_mock.request_history.pop()
@@ -316,7 +321,7 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     request_record = requests_mock.request_history.pop()
     assert request_record.url == f'{api.identification_url}?language=cz,de'
 
-    api.identify([image_path, image_path])
+    api.identify([image_path, image_path], max_image_size=None)
     request_record = requests_mock.request_history.pop()
     assert request_record.json() == {
         'images': [image_base64, image_base64],
@@ -331,22 +336,22 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     request_record = requests_mock.request_history.pop()
     assert request_record.url == f'{api.identification_url}?async=true'
 
-    api.identify(image_path)
+    api.identify(image_path, max_image_size=None)
     request_record = requests_mock.request_history.pop()
     assert request_record.json() == {'images': [image_base64], 'similar_images': True}
 
-    api.identify(image_path, custom_id=1)
+    api.identify(image_path, custom_id=1, max_image_size=None)
     request_record = requests_mock.request_history.pop()
     assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'custom_id': 1}
 
     date = '2023-11-28T08:38:48.538187+00:00'
-    api.identify(image_path, date_time=date)
+    api.identify(image_path, date_time=date, max_image_size=None)
     request_record = requests_mock.request_history.pop()
     assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'datetime': date}
 
     # accept image as a file object
     with open(image_path, 'rb') as f:
-        api.identify(f, input_type=InputType.FILE)
+        api.identify(f, input_type=InputType.FILE, max_image_size=None)
         request_record = requests_mock.request_history.pop()
         assert request_record.json() == {
             'images': [image_base64],
@@ -356,7 +361,7 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     # accept image as a byte stream
     with open(image_path, 'rb') as f:
         image = f.read()
-        api.identify(image, InputType.STREAM)
+        api.identify(image, InputType.STREAM, max_image_size=None)
         request_record = requests_mock.request_history.pop()
         assert request_record.json() == {
             'images': [image_base64],
@@ -508,7 +513,7 @@ def test_health_assessment(
     api, api_key, image_path, image_base64, requests_mock, health_assessment_dict, health_assessment
 ):
     requests_mock.post(api.health_assessment_url, json=health_assessment_dict)
-    response = api.health_assessment(image_path)
+    response = api.health_assessment(image_path, max_image_size=None)
     request_record = requests_mock.request_history.pop()
     assert request_record.method == 'POST'
     assert request_record.url == f'{api.health_assessment_url}'
@@ -522,7 +527,12 @@ def test_health_assessment(
     assert request_record.url == f'{api.health_assessment_url}?full_disease_list=true'
 
     response = api.health_assessment(
-        image_path, full_disease_list=True, asynchronous=True, language=['cz', 'de'], details='image'
+        image_path,
+        full_disease_list=True,
+        asynchronous=True,
+        language=['cz', 'de'],
+        details='image',
+        max_image_size=None,
     )
     request_record = requests_mock.request_history.pop()
     assert (
@@ -531,7 +541,7 @@ def test_health_assessment(
     )
     assert request_record.json() == {'images': [image_base64], 'similar_images': True}
 
-    response = api.health_assessment(image_path, custom_id=1)
+    response = api.health_assessment(image_path, custom_id=1, max_image_size=None)
     request_record = requests_mock.request_history.pop()
     assert request_record.url == api.health_assessment_url
     assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'custom_id': 1}
