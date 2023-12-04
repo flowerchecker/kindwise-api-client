@@ -1,3 +1,4 @@
+import enum
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -96,6 +97,13 @@ class Feedback:
         )
 
 
+class IdentificationStatus(str, enum.Enum):
+    CREATED = 'CREATED'
+    SUBMITTED = 'SUBMITTED'
+    COMPLETED = 'COMPLETED'
+    FAILED = 'FAILED'
+
+
 @dataclass
 class Identification:
     access_token: str
@@ -103,7 +111,7 @@ class Identification:
     custom_id: str | None
     input: Input
     result: Result | None
-    status: str  # todo create an enum for status
+    status: IdentificationStatus
     sla_compliant_client: bool
     sla_compliant_system: bool
     created: datetime
@@ -118,7 +126,7 @@ class Identification:
             custom_id=data['custom_id'],
             input=Input.from_dict(data['input']),
             result=None if 'result' not in data else Result.from_dict(data['result']),
-            status=data['status'],
+            status=IdentificationStatus(data['status']),
             sla_compliant_client=data['sla_compliant_client'],
             sla_compliant_system=data['sla_compliant_system'],
             created=datetime.fromtimestamp(data['created']),
@@ -171,7 +179,7 @@ class PlantIdentification(Identification):
             custom_id=data['custom_id'],
             input=Input.from_dict(data['input']),
             result=None if 'result' not in data else PlantResult.from_dict(data['result']),
-            status=data['status'],
+            status=IdentificationStatus(data['status']),
             sla_compliant_client=data['sla_compliant_client'],
             sla_compliant_system=data['sla_compliant_system'],
             created=datetime.fromtimestamp(data['created']),

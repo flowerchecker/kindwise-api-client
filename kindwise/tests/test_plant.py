@@ -14,6 +14,7 @@ from kindwise.models import (
     ResultEvaluation,
     HealthAssessment,
     HealthAssessmentResult,
+    IdentificationStatus,
 )
 from .conftest import IMAGE_DIR, run_test_requests_to_server, staging_api, run_test_available_details
 from ..core import InputType
@@ -137,7 +138,7 @@ def identification():
                 ]
             ),
         ),
-        status='COMPLETED',
+        status=IdentificationStatus('COMPLETED'),
         sla_compliant_client=True,
         sla_compliant_system=True,
         created=datetime.fromtimestamp(1701160728.538187),
@@ -283,6 +284,8 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
         json=identification_dict,
     )
     response_identification = api.identify(image_path, health=True, max_image_size=None)
+    assert isinstance(response_identification.status, IdentificationStatus), type(response_identification.status)
+    assert response_identification.status == IdentificationStatus.COMPLETED
     assert len(requests_mock.request_history) == 1
     request_record = requests_mock.request_history.pop()
     assert request_record.method == 'POST'

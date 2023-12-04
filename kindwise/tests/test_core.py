@@ -6,7 +6,15 @@ import pytest
 from PIL import Image
 
 from kindwise.insect import InsectApi
-from kindwise.models import Identification, Result, Input, Classification, Suggestion, SimilarImage
+from kindwise.models import (
+    Identification,
+    Result,
+    Input,
+    Classification,
+    Suggestion,
+    SimilarImage,
+    IdentificationStatus,
+)
 from .conftest import IMAGE_DIR
 from ..core import InputType
 
@@ -62,7 +70,7 @@ def identification():
                 ]
             )
         ),
-        status='COMPLETED',
+        status=IdentificationStatus.COMPLETED,
         sla_compliant_client=True,
         sla_compliant_system=True,
         created=datetime.fromtimestamp(1700642966.136448),
@@ -141,6 +149,8 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
         json=identification_dict,
     )
     response_identification = api.identify(image_path, max_image_size=None)
+    assert isinstance(response_identification.status, IdentificationStatus), type(response_identification.status)
+    assert response_identification.status == IdentificationStatus.COMPLETED
     assert len(requests_mock.request_history) == 1
     request_record = requests_mock.request_history.pop()
     assert request_record.method == 'POST'
