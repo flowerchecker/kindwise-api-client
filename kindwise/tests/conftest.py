@@ -81,3 +81,9 @@ def usage_info_dict():
 @pytest.fixture
 def usage_info(usage_info_dict):
     return UsageInfo.from_dict(usage_info_dict)
+
+
+def run_test_available_details(expected_view_names, expected_license, expected_localized, available_views):
+    assert expected_view_names == {v['name'] for v in available_views}
+    assert expected_license == {v['name'] for v in available_views if v['license']}
+    assert expected_localized == {v['name'] for v in available_views if v['localized']}

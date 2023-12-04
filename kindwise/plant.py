@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from pathlib import Path
 from typing import BinaryIO
@@ -144,3 +145,12 @@ class PlantApi(KindwiseApi):
 
     def delete_health_assessment(self, identification: HealthAssessment | str | int) -> bool:
         return self.delete_identification(identification)
+
+    @property
+    def views_path(self) -> Path:
+        return settings.APP_DIR / 'resources' / f'views.plant.json'
+
+    @classmethod
+    def available_disease_details(cls) -> list[dict[str, any]]:
+        with open(settings.APP_DIR / 'resources' / f'views.plant.disease.json') as f:
+            return json.load(f)

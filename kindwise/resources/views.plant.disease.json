@@ -1,0 +1,51 @@
+[
+  {
+    "name": "local_name",
+    "type": "string",
+    "localized": true,
+    "license": false,
+    "description": "name"
+  },
+  {
+    "name": "description",
+    "type": "string",
+    "localized": true,
+    "license": false,
+    "description": "short disease description from Wikipedia"
+  },
+  {
+    "name": "url",
+    "type": "string",
+    "localized": true,
+    "license": false,
+    "description": "link to disease profile page (usually Wikipedia); if localized page not available, an English one is provided"
+  },
+  {
+    "name": "treatment",
+    "type": "dict",
+    "localized": false,
+    "license": false,
+    "description": "treatments and prevention for every disease suggestion. Biological or chemical treatments for the disease may not be present for all diseases, but prevention is always present."
+  },
+  {
+    "name": "classification",
+    "type": "list",
+    "localized": false,
+    "license": false,
+    "description": "class hierarchy of the disease, sorted from most general to the most specific"
+  },
+  {
+    "name": "common_names",
+    "type": "list",
+    "localized": true,
+    "license": false,
+    "description": "common names of the disease"
+  },
+  {
+    "name": "cause",
+    "type": "string",
+    "localized": false,
+    "license": false,
+    "description": "scientific name of the cause of the disease"
+  }
+]

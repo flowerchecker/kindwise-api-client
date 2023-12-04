@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from kindwise import settings
 from kindwise.core import KindwiseApi
 
@@ -20,3 +22,7 @@ class InsectApi(KindwiseApi):
     @property
     def usage_info_url(self):
         return f'{self.host}/api/v1/usage_info'
+
+    @property
+    def views_path(self) -> Path:
+        return settings.APP_DIR / 'resources' / f'views.insect.json'

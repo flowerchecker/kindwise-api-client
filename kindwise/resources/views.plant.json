@@ -1,0 +1,100 @@
+[
+  {
+    "name": "common_names",
+    "type": "list of strings",
+    "localized": true,
+    "license": false,
+    "description": "local, non-scientific name"
+  },
+  {
+    "name": "url",
+    "type": "string",
+    "localized": true,
+    "license": false,
+    "description": "link to plant profile page (usually Wikipedia); if localized page not available, an English one is provided"
+  },
+  {
+    "name": "description",
+    "type": "string",
+    "localized": true,
+    "license": true,
+    "description": "short description from Wikipedia"
+  },
+  {
+    "name": "taxonomy",
+    "type": "dict",
+    "localized": false,
+    "license": false,
+    "description": "scientific taxonomy"
+  },
+  {
+    "name": "name_authority",
+    "type": "string",
+    "localized": false,
+    "license": false,
+    "description": "scientific name of the plant and authority, for example, Taraxacum officinale F.H.Wigg."
+  },
+  {
+    "name": "rank",
+    "type": "string",
+    "localized": false,
+    "license": false,
+    "description": "taxonomic rank"
+  },
+  {
+    "name": "gbif_id",
+    "type": "int",
+    "localized": false,
+    "license": false,
+    "description": "id in GBIF database"
+  },
+  {
+    "name": "inaturalist_id",
+    "type": "int",
+    "localized": false,
+    "license": false,
+    "description": "id in iNaturalist database"
+  },
+  {
+    "name": "image",
+    "type": "string",
+    "localized": false,
+    "license": true,
+    "description": "url of representative image"
+  },
+  {
+    "name": "images",
+    "type": "list",
+    "localized": false,
+    "license": true,
+    "description": "list of more urls of representative images"
+  },
+  {
+    "name": "synonyms",
+    "type": "list",
+    "localized": false,
+    "license": false,
+    "description": "other names of the plant"
+  },
+  {
+    "name": "edible_parts",
+    "type": "list",
+    "localized": false,
+    "license": false,
+    "description": "edible/medicinal parts of the plant"
+  },
+  {
+    "name": "propagation_methods",
+    "type": "list",
+    "localized": false,
+    "license": false,
+    "description": "propagation methods of the plant (eg. seeds, cuttings...)"
+  },
+  {
+    "name": "watering",
+    "type": "dict",
+    "localized": false,
+    "license": false,
+    "description": "minimum and maximum of how wet environment the plant prefers (1 = dry, 2 = medium, 3 = wet), eg. \"watering\": {\"min\": 1, \"max\": 2} means plant prefers dry to medium environment"
+  }
+]

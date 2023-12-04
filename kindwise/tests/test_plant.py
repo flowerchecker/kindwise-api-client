@@ -15,7 +15,7 @@ from kindwise.models import (
     HealthAssessment,
     HealthAssessmentResult,
 )
-from .conftest import IMAGE_DIR, run_test_requests_to_server, staging_api
+from .conftest import IMAGE_DIR, run_test_requests_to_server, staging_api, run_test_available_details
 from ..core import InputType
 from ..plant import PlantApi
 
@@ -634,3 +634,44 @@ def test_requests_to_plant_server(api: PlantApi, image_path):
         assert api.delete_health_assessment(health_assessment.access_token)
         with pytest.raises(ValueError):
             api.get_health_assessment(health_assessment.access_token)
+
+
+def test_available_details(api):
+    expected_view_names = {
+        'common_names',
+        'url',
+        'description',
+        'taxonomy',
+        'rank',
+        'name_authority',
+        'gbif_id',
+        'inaturalist_id',
+        'image',
+        'images',
+        'synonyms',
+        'edible_parts',
+        'propagation_methods',
+        'watering',
+    }
+    expected_license = {'description', 'image', 'images'}
+    expected_localized = {'common_names', 'url', 'description'}
+
+    run_test_available_details(expected_view_names, expected_license, expected_localized, api.available_details())
+
+
+def test_available_disease_details(api):
+    expected_view_names = {
+        'local_name',
+        'description',
+        'url',
+        'treatment',
+        'classification',
+        'common_names',
+        'cause',
+    }
+    expected_license = set()
+    expected_localized = {'local_name', 'description', 'url', 'common_names'}
+
+    run_test_available_details(
+        expected_view_names, expected_license, expected_localized, api.available_disease_details()
+    )

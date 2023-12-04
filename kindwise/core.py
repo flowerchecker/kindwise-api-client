@@ -2,7 +2,9 @@ import abc
 import base64
 import enum
 import io
+import json
 from datetime import datetime
+from functools import cached_property
 from pathlib import Path
 from typing import BinaryIO
 
@@ -204,3 +206,12 @@ class KindwiseApi(abc.ABC):
         if not response.ok:
             raise ValueError(f'Error while sending a feedback: {response.status_code=} {response.text=}')
         return True
+
+    @property
+    @abc.abstractmethod
+    def views_path(self) -> Path:
+        ...
+
+    def available_details(self) -> list[dict[str, any]]:
+        with open(self.views_path) as f:
+            return json.load(f)

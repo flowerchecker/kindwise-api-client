@@ -1,0 +1,65 @@
+[
+  {
+    "name": "common_names",
+    "type": "list of strings",
+    "localized": true,
+    "license": false,
+    "description": "local,non-scientific name"
+  },
+  {
+    "name": "url",
+    "type": "string",
+    "localized": true,
+    "license": false,
+    "description": "link to insect profile page (usually Wikipedia); if localized page not available, an English one is provided"
+  },
+  {
+    "name": "description",
+    "type": "string",
+    "localized": true,
+    "license": true,
+    "description": "licensed - short description from Wikipedia"
+  },
+  {
+    "name": "taxonomy",
+    "type": "dict",
+    "localized": false,
+    "license": false,
+    "description": "scientific taxonomy"
+  },
+  {
+    "name": "rank",
+    "type": "string",
+    "localized": false,
+    "license": false,
+    "description": "taxonomic rank"
+  },
+  {
+    "name": "gbif_id",
+    "type": "int",
+    "localized": false,
+    "license": false,
+    "description": "id in GBIF database"
+  },
+  {
+    "name": "inaturalist_id",
+    "type": "int",
+    "localized": false,
+    "license": false,
+    "description": "id in iNaturalist database"
+  },
+  {
+    "name": "image",
+    "type": "string",
+    "localized": false,
+    "license": true,
+    "description": "url of representative image"
+  },
+  {
+    "name": "images",
+    "type": "list",
+    "localized": false,
+    "license": true,
+    "description": "list of more urls of representative images"
+  }
+]
