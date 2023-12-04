@@ -54,7 +54,6 @@ identification_with_different_views: PlantIdentification = api.get_identificatio
 api.delete_identification(identification)  # also works with identification.access_token or identification.custom_id
 ```
 
-
 ## Structure
 
 SDK supports the following Kindwise systems:
@@ -65,21 +64,35 @@ SDK supports the following Kindwise systems:
 
 Each system has its class, which is used to make requests to the API. Each class has the following methods:
 
-| method                                                  | description                             | return type        | plant              | insect             | mushroom           |
-|---------------------------------------------------------|-----------------------------------------|--------------------|--------------------|--------------------|--------------------|
-| [`identify`](#identify)                                 | create new identification               | `Identification`   | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| [`get_identification`](#get_identification)             | get identification by token             | `Identification`   | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| [`delete_identification`](#delete_identification)       | delete identification by token          | boolean            | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| [`usage_info`](#usage_info)                             | get api key usage information           | `UsageInfo`        | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| [`feedback`](#feedback)                                 | send feedback for identification        | boolean            | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| [`health_assessment`](#health_assessment)               | create health assessment identification | `HealthAssessment` | :white_check_mark: | :x:                | :x:                |
-| [`get_health_assessment`](#get_health_assessment)       | get health assessment identification    | `HealthAssessment` | :white_check_mark: | :x:                | :x:                |
-| [`delete_health_assessment`](#delete_health_assessment) | delete health assessment                | boolean            | :white_check_mark: | :x:                | :x:                |
+| method                                                    | description                                                                         | return type        | plant              | insect             | mushroom           |
+|-----------------------------------------------------------|-------------------------------------------------------------------------------------|--------------------|--------------------|--------------------|--------------------|
+| [`identify`](#identify)                                   | create new identification                                                           | `Identification`   | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| [`get_identification`](#get_identification)               | get identification by token                                                         | `Identification`   | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| [`delete_identification`](#delete_identification)         | delete identification by token                                                      | boolean            | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| [`usage_info`](#usage_info)                               | get api key usage information                                                       | `UsageInfo`        | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| [`feedback`](#feedback)                                   | send feedback for identification                                                    | boolean            | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| [`health_assessment`](#health_assessment)                 | create health assessment identification                                             | `HealthAssessment` | :white_check_mark: | :x:                | :x:                |
+| [`get_health_assessment`](#get_health_assessment)         | get health assessment identification                                                | `HealthAssessment` | :white_check_mark: | :x:                | :x:                |
+| [`delete_health_assessment`](#delete_health_assessment)   | delete health assessment                                                            | boolean            | :white_check_mark: | :x:                | :x:                |
+| [`available_details`](#available_details)                 | details which can be used to specify additional information for `identify`          | dict               | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| [`available_disease_details`](#available_disease_details) | details which can be used to specify additional information for `health_assessment` | dict               | :white_check_mark: | :x:                | :x:                |
 
 Datetime objects are created by method `datetime.fromtimestamp(timestamp)`. This means that datetime objects are in
 local timezone.
 
 ### Documentation
+
+#### available_details
+
+Returns details which can be used to specify additional information for `identify` method. `
+
+```python
+from kindwise.plant import PlantApi
+
+api = PlantApi()
+
+available_details = api.available_details()
+```
 
 #### identify
 
@@ -221,6 +234,19 @@ api = PlantApi(api_key='your_api_key')
 
 custom_id = 123  # also works with access_token or Identification object
 api.feedback(custom_id, comment='comment', rating=5)
+```
+
+#### available_disease_details
+
+Returns details which can be used to specify additional information for `health_assessment` method. Only available for
+plant.id.
+
+```python
+from kindwise.plant import PlantApi
+
+api = PlantApi()
+
+available_disease_details = api.available_disease_details()
 ```
 
 #### health_assessment
