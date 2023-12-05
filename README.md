@@ -119,12 +119,16 @@ api = PlantApi(api_key='your_api_key')
 images = ['path/to/image1.jpg', 'path/to/image2.jpg', 'path/to/image3.jpg', 'path/to/image4.jpg', 'path/to/image5.jpg']
 # details included in identification
 details = ['common_names', 'taxonomy', 'image']
+# disease details included in health identification(only used if health=True)
+# disease_details parameter is only available for plant.id
+disease_details = ['local_name', 'description', 'treatment', 'cause']
 # you can specify up to 3 languages
 language = ['en', 'cs']
 # default for similar_images is True
 similar_images = True
 # where was an image taken
 latitude_longitude = (49.20340, 16.57318)
+# you can include health assessment in your identification by specifying health=True,
 # health assessment is only available for plant.id
 health = True
 # custom id is used to identify identification in your system, but can be replaced with access_token
@@ -137,6 +141,7 @@ max_image_size = 1500
 identification: PlantIdentification = api.identify(
     images,
     details=details,
+    disease_details=disease_details,
     language=language,
     similar_images=similar_images,
     latitude_longitude=latitude_longitude,

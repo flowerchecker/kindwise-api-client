@@ -371,6 +371,20 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
             'similar_images': True,
         }
 
+    # check disease details
+    def run_test_disease_details(details, disease_details, expected_details):
+        api.identify(image_path, details=details, disease_details=disease_details, health=True)
+        request_record = requests_mock.request_history.pop()
+        assert request_record.url == f'{api.identification_url}?details={expected_details}'
+
+    run_test_disease_details(None, 'image', 'image')
+    run_test_disease_details('image', 'image', 'image')
+    run_test_disease_details('image', 'image,treatment', 'image,treatment')
+    run_test_disease_details('image', ['image', 'treatment'], 'image,treatment')
+    api.identify(image_path, disease_details='image')
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == api.identification_url
+
 
 @pytest.fixture
 def health_assessment():

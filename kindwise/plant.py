@@ -47,6 +47,7 @@ class PlantApi(KindwiseApi):
         image: Path | str | bytes | BinaryIO | list[str | Path | bytes | BinaryIO],
         input_type: InputType = InputType.PATH,
         details: str | list[str] = None,
+        disease_details: str | list[str] = None,
         language: str | list[str] = None,
         asynchronous: bool = False,
         similar_images: bool = True,
@@ -57,6 +58,12 @@ class PlantApi(KindwiseApi):
         max_image_size: int | None = 1500,
         as_dict: bool = False,
     ) -> PlantIdentification | dict:
+        if isinstance(details, str):
+            details = details.split(',')
+        if disease_details is not None and health:
+            disease_details = disease_details.split(',') if isinstance(disease_details, str) else disease_details
+            details = [] if details is None else details
+            details = list(dict.fromkeys(details + disease_details))
         identification = super().identify(
             image=image,
             details=details,
