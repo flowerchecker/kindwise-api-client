@@ -656,7 +656,7 @@ def health_assessment():
                 ]
             ),
         ),
-        status='COMPLETED',
+        status=IdentificationStatus.COMPLETED,
         sla_compliant_client=True,
         sla_compliant_system=True,
         created=datetime.fromtimestamp(1701166759.169041),
