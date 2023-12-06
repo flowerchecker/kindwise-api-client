@@ -16,7 +16,6 @@ from kindwise.models import (
     IdentificationStatus,
 )
 from .conftest import IMAGE_DIR
-from ..core import InputType
 
 
 @pytest.fixture
@@ -143,7 +142,9 @@ def image_base64(image_path):
         return base64.b64encode(file.read()).decode('ascii')
 
 
-def test_identify(api, api_key, identification, identification_dict, image_path, image_base64, requests_mock):
+def test_identify(
+    api, api_key, identification, identification_dict, image_path, image_base64, requests_mock, request_matcher
+):
     requests_mock.post(
         f'{api.identification_url}',
         json=identification_dict,
@@ -226,39 +227,26 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
         api.identify(image_path, date_time='2023-20-20')
 
     # accept image as base64 string
-    api.identify(image_base64, input_type=InputType.BASE64, max_image_size=None)
-    request_record = requests_mock.request_history.pop()
-    assert request_record.json() == {
-        'images': [image_base64],
-        'similar_images': True,
-    }
+    request_matcher.check_identify_request(
+        expected_payload=[('images', [image_base64])], max_image_size=None, image=image_base64
+    )
 
     # accept image as base64 bytes
-    api.identify(image_base64.encode('ascii'), input_type=InputType.BASE64, max_image_size=None)
-    request_record = requests_mock.request_history.pop()
-    assert request_record.json() == {
-        'images': [image_base64],
-        'similar_images': True,
-    }
+    request_matcher.check_identify_request(
+        expected_payload=[('images', [image_base64])], max_image_size=None, image=image_base64.encode('ascii')
+    )
 
     # accept image as a file object
     with open(image_path, 'rb') as f:
-        api.identify(f, input_type=InputType.FILE, max_image_size=None)
-        request_record = requests_mock.request_history.pop()
-        assert request_record.json() == {
-            'images': [image_base64],
-            'similar_images': True,
-        }
+        request_matcher.check_identify_request(
+            expected_payload=[('images', [image_base64])], max_image_size=None, image=f
+        )
 
     # accept image as a byte stream
     with open(image_path, 'rb') as f:
-        image = f.read()
-        api.identify(image, input_type=InputType.STREAM, max_image_size=None)
-        request_record = requests_mock.request_history.pop()
-        assert request_record.json() == {
-            'images': [image_base64],
-            'similar_images': True,
-        }
+        request_matcher.check_identify_request(
+            expected_payload=[('images', [image_base64])], max_image_size=None, image=f.read()
+        )
 
     # check if image is resized
     with open(image_path, 'rb') as f:
@@ -266,22 +254,22 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
         max_size = max(img.size)
         new_size = max_size - 100
 
-    def run_test_resize(img, input_type):
-        api.identify(img, input_type=input_type, max_image_size=new_size)
+    def run_test_resize(img):
+        api.identify(img, max_image_size=new_size)
         request_record = requests_mock.request_history.pop()
         send_img = request_record.json()['images'][0]
         decoded = base64.b64decode(send_img)
         send_img = Image.open(io.BytesIO(decoded))
         assert max(send_img.size) == new_size
 
-    run_test_resize(image_path, InputType.PATH)
-    run_test_resize(image_base64, InputType.BASE64)
+    run_test_resize(image_path)
+    run_test_resize(image_base64)
 
     with open(image_path, 'rb') as f:
-        run_test_resize(f, InputType.FILE)
+        run_test_resize(f)
 
     with open(image_path, 'rb') as f:
-        run_test_resize(f.read(), InputType.STREAM)
+        run_test_resize(f.read())
 
 
 def test_get_identification(api, api_key, identification, identification_dict, image_path, requests_mock):

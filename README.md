@@ -102,20 +102,14 @@ Creates a new identification. In one identification, you can include up to 5 ima
 import base64
 from datetime import datetime
 
-from kindwise.core import InputType
 from kindwise.models import PlantIdentification
 from kindwise.plant import PlantApi
 
 api = PlantApi(api_key='your_api_key')
 # this creates one identification composed of 5 images(not 5 different identifications)
 #
-# as input image is accepted path to an image(InputType.PATH), base64 encoded bytes or string(InputType.BASE64),
-# file object in byte mode(InputType.FILE), or byte stream(InputType.STREAM).
-#
-# by default is used (InputType.PATH)
-# all image types are in kindwise.core.InputType enum
-#
-# you cannot mix different types of input in one identification
+# as input image is accepted path to an image(str / pathlib.Path), base64 encoded stream(bytes/string), stream(bytes/string),
+# or file object(supports read,seek and mode methods)
 images = ['path/to/image1.jpg', 'path/to/image2.jpg', 'path/to/image3.jpg', 'path/to/image4.jpg', 'path/to/image5.jpg']
 # details included in identification
 details = ['common_names', 'taxonomy', 'image']
@@ -149,21 +143,20 @@ identification: PlantIdentification = api.identify(
     custom_id=custom_id,
     date_time=date_time,
     max_image_size=max_image_size,
-    input_type=InputType.PATH,  # does not have to be here as default is InputType.PATH
 )
 
 # identification created from stream
 with open('path/to/image.jpg', 'rb') as image:
-    identification_from_stream: PlantIdentification = api.identify(image.read(), InputType.STREAM)
+    identification_from_stream: PlantIdentification = api.identify(image.read())
 
 # identification created from file object
 with open('path/to/image.jpg', 'rb') as image:
-    identification_from_file: PlantIdentification = api.identify(image, InputType.FILE)
+    identification_from_file: PlantIdentification = api.identify(image)
 
 # identification created from base64 encoded image
 with open('path/to/image.jpg', 'rb') as image:
     image_in_base64 = base64.b64encode(image.read())
-    identification_from_base64: PlantIdentification = api.identify(image, InputType.BASE64)
+    identification_from_base64: PlantIdentification = api.identify(image)
 ```
 
 When you don't want to wait until the identification is finished, you can specify `asynchronous=True` and

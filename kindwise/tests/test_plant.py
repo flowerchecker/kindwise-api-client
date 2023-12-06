@@ -18,7 +18,6 @@ from kindwise.models import (
     ClassificationLevel,
 )
 from .conftest import IMAGE_DIR, run_test_requests_to_server, staging_api, run_test_available_details
-from ..core import InputType
 from ..plant import PlantApi
 
 
@@ -303,83 +302,32 @@ def test_identify(
     # check languages
     request_matcher.check_identify_request(expected_query='language=cz,de', language=['cz', 'de'])
 
-    response_identification = api.identify(
-        image_path,
-        similar_images=False,
-        details=['image'],
-        language='cz',
-        latitude_longitude=(1.0, 2.0),
     # check details
     request_matcher.check_identify_request(expected_query='details=image', details='image')
 
     # check async
     request_matcher.check_identify_request(expected_query='async=true', asynchronous=True)
 
+    # check images
+    request_matcher.check_identify_request(expected_payload=[('images', [image_base64])], max_image_size=None)
+    request_matcher.check_identify_request(
+        expected_payload=[('images', [image_base64, image_base64])],
         max_image_size=None,
+        image=[image_path, image_path],
     )
-    assert len(requests_mock.request_history) == 1
-    request_record = requests_mock.request_history.pop()
-    assert request_record.method == 'POST'
-    assert request_record.url == f'{api.identification_url}?details=image&language=cz'
-    assert request_record.headers['Content-Type'] == 'application/json'
-    assert request_record.headers['Api-Key'] == api_key
-    assert request_record.json() == {
-        'images': [image_base64],
-        'similar_images': False,
-        'latitude': 1.0,
-        'longitude': 2.0,
-    }
-
-    api.identify(image_path, language=['cz', 'de'])
-    request_record = requests_mock.request_history.pop()
-    assert request_record.url == f'{api.identification_url}?language=cz,de'
-
-    api.identify([image_path, image_path], max_image_size=None)
-    request_record = requests_mock.request_history.pop()
-    assert request_record.json() == {
-        'images': [image_base64, image_base64],
-        'similar_images': True,
-    }
-
-    api.identify(image_path, details='image')
-    request_record = requests_mock.request_history.pop()
-    assert request_record.url == f'{api.identification_url}?details=image'
-
-    api.identify(image_path, asynchronous=True)
-    request_record = requests_mock.request_history.pop()
-    assert request_record.url == f'{api.identification_url}?async=true'
-
-    api.identify(image_path, max_image_size=None)
-    request_record = requests_mock.request_history.pop()
-    assert request_record.json() == {'images': [image_base64], 'similar_images': True}
-
-    api.identify(image_path, custom_id=1, max_image_size=None)
-    request_record = requests_mock.request_history.pop()
-    assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'custom_id': 1}
-
-    date = '2023-11-28T08:38:48.538187+00:00'
-    api.identify(image_path, date_time=date, max_image_size=None)
-    request_record = requests_mock.request_history.pop()
-    assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'datetime': date}
-
-    # accept image as a file object
     with open(image_path, 'rb') as f:
-        api.identify(f, input_type=InputType.FILE, max_image_size=None)
-        request_record = requests_mock.request_history.pop()
-        assert request_record.json() == {
-            'images': [image_base64],
-            'similar_images': True,
-        }
-
-    # accept image as a byte stream
+        request_matcher.check_identify_request(
+            expected_payload=[('images', [image_base64])],
+            max_image_size=None,
+            image=f,
+        )
     with open(image_path, 'rb') as f:
-        image = f.read()
-        api.identify(image, InputType.STREAM, max_image_size=None)
-        request_record = requests_mock.request_history.pop()
-        assert request_record.json() == {
-            'images': [image_base64],
-            'similar_images': True,
-        }
+        request_matcher.check_identify_request(
+            expected_payload=[('images', [image_base64])],
+            max_image_size=None,
+            image=f.read(),
+        )
+
     # check custom_id
     request_matcher.check_identify_request(expected_payload=[('custom_id', 1)], custom_id=1)
 

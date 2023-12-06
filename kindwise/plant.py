@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import BinaryIO
 
 from kindwise import settings
-from kindwise.core import KindwiseApi, InputType
+from kindwise.core import KindwiseApi
 from kindwise.models import PlantIdentification, HealthAssessment, ClassificationLevel
 
 
@@ -60,7 +60,6 @@ class PlantApi(KindwiseApi):
     def identify(
         self,
         image: Path | str | bytes | BinaryIO | list[str | Path | bytes | BinaryIO],
-        input_type: InputType = InputType.PATH,
         details: str | list[str] = None,
         disease_details: str | list[str] = None,
         language: str | list[str] = None,
@@ -85,7 +84,6 @@ class PlantApi(KindwiseApi):
             custom_id=custom_id,
             date_time=date_time,
             max_image_size=max_image_size,
-            input_type=input_type,
             classification_level=classification_level,
             as_dict=True,
         )
@@ -135,14 +133,12 @@ class PlantApi(KindwiseApi):
         custom_id: int | None = None,
         date_time: datetime | str | float | None = None,
         max_image_size: int | None = 1500,
-        input_type: InputType = InputType.PATH,
         as_dict: bool = False,
     ) -> HealthAssessment | dict:
         query = self._build_query(details, language, asynchronous, full_disease_list=full_disease_list)
         url = f'{self.health_assessment_url}{query}'
         payload = self._build_payload(
             image,
-            input_type=input_type,
             similar_images=similar_images,
             latitude_longitude=latitude_longitude,
             custom_id=custom_id,
