@@ -224,9 +224,26 @@ def test_identify(
         run_test_resize(f)
     with open(image_path, 'rb') as f:
         run_test_resize(f.read())
+    # check extra_post_params
+    request_matcher.check_identify_request(expected_payload=[('test', 'test')], extra_post_params={'test': 'test'})
+    # check extra_get_params
+    request_matcher.check_identify_request(expected_query='test=test', extra_get_params='?test=test')
+    request_matcher.check_identify_request(expected_query='test=test', extra_get_params='test=test')
+    request_matcher.check_identify_request(expected_query='test=test', extra_get_params='test=test&')
+    request_matcher.check_identify_request(
+        expected_query='details=image&test=test', details=['image'], extra_get_params='?test=test'
+    )
+    request_matcher.check_identify_request(
+        expected_query='details=image&test=test', details=['image'], extra_get_params='test=test'
+    )
+    request_matcher.check_identify_request(
+        expected_query='details=image&test=test', details=['image'], extra_get_params='test=test&'
+    )
 
 
-def test_get_identification(api, api_key, identification, identification_dict, image_path, requests_mock):
+def test_get_identification(
+    api, api_key, identification, identification_dict, image_path, requests_mock, request_matcher
+):
     requests_mock.get(
         f'{api.identification_url}/{identification.access_token}',
         json=identification_dict,
@@ -261,6 +278,8 @@ def test_get_identification(api, api_key, identification, identification_dict, i
     api.get_identification(identification.access_token, details='image,images')
     request_record = requests_mock.request_history.pop()
     assert request_record.url == f'{api.identification_url}/{identification.access_token}?details=image,images'
+    # check extra_get_params
+    request_matcher.check_get_identification_request(expected_query='test=test', extra_get_params='?test=test')
 
 
 def test_delete_identification(api, api_key, identification, requests_mock):

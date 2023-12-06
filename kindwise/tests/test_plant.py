@@ -512,31 +512,23 @@ def test_identify(
 ):
     # check parsing
     request_matcher.check_identify_request(expected_result=identification)
-
     # check as_dict
     request_matcher.check_identify_request(expected_result=identification_dict, as_dict=True)
-
     # check health
     request_matcher.check_identify_request(expected_payload=[('health', 'all')], health=True)
-
     # check similar images
     request_matcher.check_identify_request(expected_payload=[('similar_images', False)], similar_images=False)
     request_matcher.check_identify_request(expected_payload=[('similar_images', True)])
-
     # check latitude_longitude
     request_matcher.check_identify_request(
         expected_payload=[('latitude', 1.0), ('longitude', 2.0)], latitude_longitude=(1.0, 2.0)
     )
-
     # check languages
     request_matcher.check_identify_request(expected_query='language=cz,de', language=['cz', 'de'])
-
     # check details
     request_matcher.check_identify_request(expected_query='details=image', details='image')
-
     # check async
     request_matcher.check_identify_request(expected_query='async=true', asynchronous=True)
-
     # check images
     request_matcher.check_identify_request(expected_payload=[('images', [image_base64])], max_image_size=None)
     request_matcher.check_identify_request(
@@ -556,14 +548,11 @@ def test_identify(
             max_image_size=None,
             image=f.read(),
         )
-
     # check custom_id
     request_matcher.check_identify_request(expected_payload=[('custom_id', 1)], custom_id=1)
-
     # check date_time
     date = '2023-11-28T08:38:48.538187+00:00'
     request_matcher.check_identify_request(expected_payload=[('datetime', date)], date_time=date)
-
     # check disease details
     request_matcher.check_identify_request(expected_query='details=image', disease_details='image', health=True)
     request_matcher.check_identify_request(
@@ -576,7 +565,6 @@ def test_identify(
         expected_query='details=image,treatment', disease_details=['image', 'treatment'], health=True
     )
     request_matcher.check_identify_request(expected_query='', disease_details='image')
-
     # check classification_level
     request_matcher.check_identify_request(
         expected_payload=[('classification_level', 'all')], classification_level='all'
@@ -585,7 +573,6 @@ def test_identify(
         expected_payload=[('classification_level', 'genus')], classification_level=ClassificationLevel.GENUS
     )
     request_matcher.check_identify_request(raises=ValueError, classification_level='non-existing')
-
     # check classification_raw
     request_matcher.check_identify_request(
         expected_payload=[('classification_raw', True)],
@@ -593,6 +580,10 @@ def test_identify(
         expected_result=raw_identification,
         classification_raw=True,
     )
+    # check extra_post_params
+    request_matcher.check_identify_request(expected_payload=[('test', 'test')], extra_post_params={'test': 'test'})
+    # check extra_get_params
+    request_matcher.check_identify_request(expected_query='test=test', extra_get_params='?test=test')
 
 
 def test_get_identification(request_matcher):
@@ -600,6 +591,8 @@ def test_get_identification(request_matcher):
     request_matcher.check_get_identification_request(
         'details=image,treatment', details='image', disease_details='treatment'
     )
+    # check extra_get_params
+    request_matcher.check_get_identification_request(expected_query='test=test', extra_get_params='?test=test')
 
 
 @pytest.fixture
@@ -743,63 +736,48 @@ def health_assessment_dict():
 
 
 def test_health_assessment(
-    api, api_key, image_path, image_base64, requests_mock, health_assessment_dict, health_assessment
+    api, api_key, image_path, image_base64, requests_mock, health_assessment_dict, health_assessment, request_matcher
 ):
-    requests_mock.post(api.health_assessment_url, json=health_assessment_dict)
-    response = api.health_assessment(image_path, max_image_size=None)
-    request_record = requests_mock.request_history.pop()
-    assert request_record.method == 'POST'
-    assert request_record.url == f'{api.health_assessment_url}'
-    assert request_record.headers['Content-Type'] == 'application/json'
-    assert request_record.headers['Api-Key'] == api_key
-    assert request_record.json() == {'images': [image_base64], 'similar_images': True}
-    assert response == health_assessment
-
-    response = api.health_assessment(image_path, full_disease_list=True)
-    request_record = requests_mock.request_history.pop()
-    assert request_record.url == f'{api.health_assessment_url}?full_disease_list=true'
-
-    response = api.health_assessment(
-        image_path,
-        full_disease_list=True,
-        asynchronous=True,
-        language=['cz', 'de'],
-        details='image',
-        max_image_size=None,
+    # check result
+    request_matcher.check_health_assessment_request(
+        health_assessment_dict, expected_result=health_assessment, expected_payload=[('similar_images', True)]
     )
-    request_record = requests_mock.request_history.pop()
-    assert (
-        request_record.url
-        == f'{api.health_assessment_url}?details=image&language=cz,de&async=true&full_disease_list=true'
+    # check full_disease_list
+    request_matcher.check_health_assessment_request(
+        health_assessment_dict, expected_query='?full_disease_list=true', full_disease_list=True
     )
-    assert request_record.json() == {'images': [image_base64], 'similar_images': True}
-
-    response = api.health_assessment(image_path, custom_id=1, max_image_size=None)
-    request_record = requests_mock.request_history.pop()
-    assert request_record.url == api.health_assessment_url
-    assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'custom_id': 1}
-
-
-def test_get_health_assessment(api, api_key, health_assessment_dict, health_assessment, requests_mock):
-    requests_mock.get(f'{api.identification_url}/{health_assessment_dict["access_token"]}', json=health_assessment_dict)
-    response = api.get_health_assessment(health_assessment_dict['access_token'])
-    request_record = requests_mock.request_history.pop()
-    assert request_record.method == 'GET'
-    assert request_record.url == f'{api.identification_url}/{health_assessment_dict["access_token"]}'
-    assert request_record.headers['Api-Key'] == api_key
-    assert response == health_assessment
-    assert api.get_health_assessment(health_assessment_dict['access_token'], as_dict=True) == health_assessment_dict
-
-    response = api.get_health_assessment(
-        health_assessment_dict['access_token'],
-        details=['treatment', 'local_name'],
-        language='cz',
-        full_disease_list=True,
+    # check language
+    request_matcher.check_health_assessment_request(
+        health_assessment_dict, expected_query='?language=cz', language='cz'
     )
-    request_record = requests_mock.request_history.pop()
-    assert (
-        request_record.url
-        == f'{api.identification_url}/{health_assessment_dict["access_token"]}?details=treatment,local_name&language=cz&full_disease_list=true'
+    # check details
+    request_matcher.check_health_assessment_request(
+        health_assessment_dict, expected_query='?details=image', details='image'
+    )
+    # check custom_id
+    request_matcher.check_health_assessment_request(
+        health_assessment_dict, expected_payload=[('custom_id', 1)], language='cz', custom_id=1
+    )
+    # check extra_post_params
+    request_matcher.check_health_assessment_request(
+        health_assessment_dict, expected_payload=[('test', 'test')], extra_post_params={'test': 'test'}
+    )
+    # check extra_get_params
+    request_matcher.check_health_assessment_request(
+        health_assessment_dict, expected_query='test=test', extra_get_params='?test=test'
+    )
+
+
+def test_get_health_assessment(api, api_key, health_assessment_dict, health_assessment, requests_mock, request_matcher):
+    # check result
+    request_matcher.check_get_health_assessment_request(health_assessment_dict, expected_result=health_assessment)
+    # check details
+    request_matcher.check_get_health_assessment_request(
+        health_assessment_dict, expected_query='details=image', details='image'
+    )
+    # check extra_get_params
+    request_matcher.check_get_health_assessment_request(
+        health_assessment_dict, expected_query='test=test', extra_get_params='?test=test'
     )
 
 

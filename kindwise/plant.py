@@ -76,6 +76,8 @@ class PlantApi(KindwiseApi):
         date_time: datetime | str | float | None = None,
         max_image_size: int | None = 1500,
         as_dict: bool = False,
+        extra_get_params: str = None,
+        extra_post_params: str = None,
     ) -> PlantIdentification | RawPlantIdentification | dict:
         identification = super().identify(
             image=image,
@@ -91,6 +93,8 @@ class PlantApi(KindwiseApi):
             classification_level=classification_level,
             classification_raw=classification_raw,
             as_dict=True,
+            extra_get_params=extra_get_params,
+            extra_post_params=extra_post_params,
         )
         if as_dict:
             return identification
@@ -105,23 +109,23 @@ class PlantApi(KindwiseApi):
         disease_details: str | list[str] = None,
         language: str | list[str] = None,
         as_dict: bool = False,
+        extra_get_params: str = None,
     ) -> PlantIdentification | dict:
         identification = super().get_identification(
             token=token,
             details=self._build_details(details, disease_details, health=True),
             language=language,
             as_dict=True,
-        )
+            extra_get_params=extra_get_params,
+        )  # todo might be RawPlantIdentification
         return identification if as_dict else PlantIdentification.from_dict(identification)
 
     def _build_query(
         self,
-        details: str | list[str] = None,
-        language: str | list[str] = None,
-        asynchronous: bool = False,
         full_disease_list: bool = False,
+        **kwargs,
     ):
-        query = super()._build_query(details, language, asynchronous)
+        query = super()._build_query(**kwargs)
         disease_query = f'full_disease_list=true' if full_disease_list else ''
         if disease_query == '':
             return query
@@ -143,8 +147,16 @@ class PlantApi(KindwiseApi):
         date_time: datetime | str | float | None = None,
         max_image_size: int | None = 1500,
         as_dict: bool = False,
+        extra_get_params: str = None,
+        extra_post_params: str = None,
     ) -> HealthAssessment | dict:
-        query = self._build_query(details, language, asynchronous, full_disease_list=full_disease_list)
+        query = self._build_query(
+            details=details,
+            language=language,
+            asynchronous=asynchronous,
+            extra_get_params=extra_get_params,
+            full_disease_list=full_disease_list,
+        )
         url = f'{self.health_assessment_url}{query}'
         payload = self._build_payload(
             image,
@@ -153,6 +165,7 @@ class PlantApi(KindwiseApi):
             custom_id=custom_id,
             date_time=date_time,
             max_image_size=max_image_size,
+            extra_post_params=extra_post_params,
         )
         response = self._make_api_call(url, 'POST', payload)
         if not response.ok:
@@ -167,8 +180,11 @@ class PlantApi(KindwiseApi):
         language: str | list[str] = None,
         full_disease_list: bool = False,
         as_dict: bool = False,
+        extra_get_params: str = None,
     ) -> HealthAssessment | dict:
-        query = self._build_query(details=details, language=language, full_disease_list=full_disease_list)
+        query = self._build_query(
+            details=details, language=language, full_disease_list=full_disease_list, extra_get_params=extra_get_params
+        )
         url = f'{self.identification_url}/{token}{query}'
         response = self._make_api_call(url, 'GET')
         if not response.ok:

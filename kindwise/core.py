@@ -4,7 +4,7 @@ import io
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import BinaryIO
+from typing import BinaryIO, Any
 
 import requests
 from PIL import Image
@@ -87,6 +87,7 @@ class KindwiseApi(abc.ABC):
         custom_id: int | None = None,
         date_time: datetime | str | float | None = None,
         max_image_size: int | None = 1500,
+        extra_post_params: dict[str, Any] = None,
         **kwargs,
     ):
         if not isinstance(image, list):
@@ -110,6 +111,8 @@ class KindwiseApi(abc.ABC):
                 payload['datetime'] = datetime.fromtimestamp(date_time).isoformat()
             else:
                 raise ValueError(f'Invalid date_time format {date_time=} {type(date_time)=}')
+        if extra_post_params is not None:
+            payload.update(extra_post_params)
         return payload
 
     def identify(
@@ -124,6 +127,8 @@ class KindwiseApi(abc.ABC):
         custom_id: int | None = None,
         date_time: datetime | str | float | None = None,
         max_image_size: int | None = 1500,
+        extra_get_params: str = None,
+        extra_post_params: dict[str, Any] = None,
         **kwargs,
     ) -> Identification | dict:
         payload = self._build_payload(
@@ -133,9 +138,13 @@ class KindwiseApi(abc.ABC):
             custom_id=custom_id,
             date_time=date_time,
             max_image_size=max_image_size,
+            extra_post_params=extra_post_params,
             **kwargs,
         )
-        url = f'{self.identification_url}{self._build_query(details, language, asynchronous)}'
+        query = self._build_query(
+            details=details, language=language, asynchronous=asynchronous, extra_get_params=extra_get_params, **kwargs
+        )
+        url = f'{self.identification_url}{query}'
         response = self._make_api_call(url, 'POST', payload)
         if not response.ok:
             raise ValueError(f'Error while creating an identification: {response.status_code=} {response.text=}')
@@ -143,7 +152,12 @@ class KindwiseApi(abc.ABC):
         return data if as_dict else Identification.from_dict(response.json())
 
     def _build_query(
-        self, details: str | list[str] = None, language: str | list[str] = None, asynchronous: bool = False
+        self,
+        details: str | list[str] = None,
+        language: str | list[str] = None,
+        asynchronous: bool = False,
+        extra_get_params: str = None,
+        **kwargs,
     ):
         if isinstance(details, str):
             details = [details]
@@ -151,16 +165,27 @@ class KindwiseApi(abc.ABC):
         if isinstance(language, str):
             language = [language]
         language_query = '' if language is None else f'language={",".join(language)}&'
+        if extra_get_params is None:
+            extra_get_params = ''
+        else:
+            if extra_get_params.startswith('?'):
+                extra_get_params = extra_get_params[1:] + '&'
         async_query = f'async=true&' if asynchronous else ''
-        query = f'?{details_query}{language_query}{async_query}'
+        query = f'?{details_query}{language_query}{async_query}{extra_get_params}'
         if query.endswith('&'):
             query = query[:-1]
         return '' if query == '?' else query
 
     def get_identification(
-        self, token: str | int, details: str | list[str] = None, language: str | list[str] = None, as_dict: bool = False
+        self,
+        token: str | int,
+        details: str | list[str] = None,
+        language: str | list[str] = None,
+        extra_get_params: str = None,
+        as_dict: bool = False,
     ) -> Identification | dict:
-        url = f'{self.identification_url}/{token}{self._build_query(details, language)}'
+        query = self._build_query(details=details, language=language, extra_get_params=extra_get_params)
+        url = f'{self.identification_url}/{token}{query}'
         response = self._make_api_call(url, 'GET')
         if not response.ok:
             raise ValueError(f'Error while getting an identification: {response.status_code=} {response.text=}')
