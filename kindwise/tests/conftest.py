@@ -67,6 +67,65 @@ def run_test_requests_to_server(api, system_name, image_path, identification_typ
             api.get_identification(identification.access_token)
 
 
+class RequestMatcher:
+    def __init__(self, api, api_key, image_path, requests_mock, identification_dict, identification):
+        self.api = api
+        self.api_key = api_key
+        self.image_path = image_path
+        self.requests_mock = requests_mock
+        self.identification_dict = identification_dict
+        self.identification = identification
+        self.requests_mock.post(
+            f'{self.api.identification_url}',
+            json=identification_dict,
+        )
+        self.requests_mock.get(
+            f'{api.identification_url}/{identification_dict["access_token"]}',
+            json=identification_dict,
+        )
+
+    def check_identify_request(
+        self,
+        expected_payload: list[tuple[str, str]] = None,
+        expected_query: str = None,
+        **kwargs,
+    ):
+        self.api.identify(self.image_path, **kwargs)
+        request_record = self.requests_mock.request_history.pop()
+        assert request_record.method == 'POST'
+        assert request_record.headers['Content-Type'] == 'application/json'
+        assert request_record.headers['Api-Key'] == self.api_key
+        if expected_query is not None:
+            if not expected_query.startswith('?'):
+                expected_query = '?' + expected_query
+            assert request_record.url == f'{self.api.identification_url}{expected_query}'
+        if expected_payload is not None:
+            payload = request_record.json()
+            for key, value in expected_payload:
+                assert payload[key] == value
+
+    def check_get_identification_request(self, expected_query: str = None, **kwargs):
+        response_identification = self.api.get_identification(self.identification_dict['access_token'], **kwargs)
+        assert len(self.requests_mock.request_history) == 1
+        request_record = self.requests_mock.request_history.pop()
+        assert request_record.method == 'GET'
+        assert request_record.headers['Content-Type'] == 'application/json'
+        assert request_record.headers['Api-Key'] == self.api_key
+        if expected_query is not None:
+            if not expected_query.startswith('?'):
+                expected_query = '?' + expected_query
+                assert (
+                    request_record.url
+                    == f'{self.api.identification_url}/{self.identification_dict["access_token"]}{expected_query}'
+                )
+        assert response_identification == self.identification
+
+
+@pytest.fixture
+def request_matcher(api, api_key, image_path, requests_mock, identification_dict, identification):
+    return RequestMatcher(api, api_key, image_path, requests_mock, identification_dict, identification)
+
+
 @pytest.fixture
 def usage_info_dict():
     return {
