@@ -88,10 +88,13 @@ class RequestMatcher:
         self,
         expected_payload: list[tuple[str, str]] = None,
         expected_query: str = None,
+        output: dict = None,
         expected_result=None,
         raises: type[Exception] = None,
         **kwargs,
     ):
+        if output is not None:
+            self.requests_mock.post(self.api.identification_url, json=output)
         if raises is None:
             if 'image' not in kwargs:
                 kwargs['image'] = self.image_path

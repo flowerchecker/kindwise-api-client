@@ -5,7 +5,7 @@ from typing import BinaryIO
 
 from kindwise import settings
 from kindwise.core import KindwiseApi
-from kindwise.models import PlantIdentification, HealthAssessment, ClassificationLevel
+from kindwise.models import PlantIdentification, HealthAssessment, ClassificationLevel, RawPlantIdentification
 
 
 class PlantApi(KindwiseApi):
@@ -36,6 +36,7 @@ class PlantApi(KindwiseApi):
         *args,
         health: bool = False,
         classification_level: str | ClassificationLevel = None,
+        classification_raw: bool = False,
         **kwargs,
     ):
         payload = super()._build_payload(*args, **kwargs)
@@ -45,6 +46,8 @@ class PlantApi(KindwiseApi):
             if not isinstance(classification_level, ClassificationLevel):
                 classification_level = ClassificationLevel(classification_level)
             payload['classification_level'] = classification_level.value
+        if classification_raw:
+            payload['classification_raw'] = classification_raw
         return payload
 
     @staticmethod
@@ -68,11 +71,12 @@ class PlantApi(KindwiseApi):
         latitude_longitude: tuple[float, float] = None,
         health: bool = False,
         classification_level: str | ClassificationLevel = None,
+        classification_raw: bool = False,
         custom_id: int | None = None,
         date_time: datetime | str | float | None = None,
         max_image_size: int | None = 1500,
         as_dict: bool = False,
-    ) -> PlantIdentification | dict:
+    ) -> PlantIdentification | RawPlantIdentification | dict:
         identification = super().identify(
             image=image,
             details=self._build_details(details, disease_details, health),
@@ -85,9 +89,14 @@ class PlantApi(KindwiseApi):
             date_time=date_time,
             max_image_size=max_image_size,
             classification_level=classification_level,
+            classification_raw=classification_raw,
             as_dict=True,
         )
-        return identification if as_dict else PlantIdentification.from_dict(identification)
+        if as_dict:
+            return identification
+        if classification_raw:
+            return RawPlantIdentification.from_dict(identification)
+        return PlantIdentification.from_dict(identification)
 
     def get_identification(
         self,

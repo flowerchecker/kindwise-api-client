@@ -16,6 +16,10 @@ from kindwise.models import (
     HealthAssessmentResult,
     IdentificationStatus,
     ClassificationLevel,
+    RawPlantIdentification,
+    RawPlantResult,
+    RawClassification,
+    TaxaSpecificSuggestion,
 )
 from .conftest import IMAGE_DIR, run_test_requests_to_server, staging_api, run_test_available_details
 from ..plant import PlantApi
@@ -268,6 +272,223 @@ def identification_dict():
 
 
 @pytest.fixture
+def raw_identification() -> RawPlantIdentification:
+    return RawPlantIdentification(
+        access_token='xMafoSAC9lwuqFs',
+        model_version='plant_id:3.4.1',
+        custom_id=None,
+        input=Input(
+            images=['https://plant.id/media/imgs/3947041816fc4a8cb040f837e8774042.jpg'],
+            datetime=datetime.fromisoformat('2023-12-06T11:48:45.941297+00:00'),
+            latitude=49.2034,
+            longitude=16.57318,
+            similar_images=True,
+        ),
+        result=RawPlantResult(
+            is_plant=ResultEvaluation(probability=1.0, binary=True, threshold=0.5),
+            is_healthy=None,
+            classification=RawClassification(
+                suggestions=TaxaSpecificSuggestion(
+                    genus=[
+                        Suggestion(
+                            id='f1e13ba892d06f23',
+                            name='Aloe',
+                            probability=0.99,
+                            similar_images=[
+                                SimilarImage(
+                                    id='e59f28dadd4c4cb5f03f0f93865bddbc6ef17b92',
+                                    url='https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/e59/f28dadd4c4cb5f03f0f93865bddbc6ef17b92.jpeg',
+                                    similarity=0.73,
+                                    url_small='https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/e59/f28dadd4c4cb5f03f0f93865bddbc6ef17b92.small.jpeg',
+                                    license_name=None,
+                                    license_url=None,
+                                    citation=None,
+                                ),
+                                SimilarImage(
+                                    id='c2d7e69290c189858185e9a91d9fb2e8126345b8',
+                                    url='https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/c2d/7e69290c189858185e9a91d9fb2e8126345b8.jpg',
+                                    similarity=0.66,
+                                    url_small='https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/c2d/7e69290c189858185e9a91d9fb2e8126345b8.small.jpg',
+                                    license_name=None,
+                                    license_url=None,
+                                    citation=None,
+                                ),
+                            ],
+                            details={'language': 'en', 'entity_id': 'f1e13ba892d06f23'},
+                        )
+                    ],
+                    species=[
+                        Suggestion(
+                            id='4ba05f1050481731',
+                            name='Aloe vera',
+                            probability=0.99,
+                            similar_images=[
+                                SimilarImage(
+                                    id='ac89509bf07b85d202d9f53094eea6394ce354c4',
+                                    url='https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/ac8/9509bf07b85d202d9f53094eea6394ce354c4.jpeg',
+                                    similarity=0.764,
+                                    url_small='https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/ac8/9509bf07b85d202d9f53094eea6394ce354c4.small.jpeg',
+                                    license_name=None,
+                                    license_url=None,
+                                    citation=None,
+                                ),
+                                SimilarImage(
+                                    id='d688b6a280e81d1a5b7bc2d0d2b8a1497f360551',
+                                    url='https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/d68/8b6a280e81d1a5b7bc2d0d2b8a1497f360551.jpeg',
+                                    similarity=0.707,
+                                    url_small='https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/d68/8b6a280e81d1a5b7bc2d0d2b8a1497f360551.small.jpeg',
+                                    license_name=None,
+                                    license_url=None,
+                                    citation=None,
+                                ),
+                            ],
+                            details={'language': 'en', 'entity_id': '4ba05f1050481731'},
+                        )
+                    ],
+                    infraspecies=[
+                        Suggestion(
+                            id='e196761efe72cbc8',
+                            name='Gasteria carinata var. carinata',
+                            probability=0.34154388,
+                            similar_images=[
+                                SimilarImage(
+                                    id='c5b08b131915d6d36a6fbe1313c780e89510bcbf',
+                                    url='https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/c5b/08b131915d6d36a6fbe1313c780e89510bcbf.jpeg',
+                                    similarity=0.48,
+                                    url_small='https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/c5b/08b131915d6d36a6fbe1313c780e89510bcbf.small.jpeg',
+                                    license_name='CC BY-NC 4.0',
+                                    license_url='https://creativecommons.org/licenses/by-nc/4.0/',
+                                    citation='Adriaan Grobler',
+                                ),
+                                SimilarImage(
+                                    id='e0a803ae9fa8a1d91d191521851ceddf36ee84c3',
+                                    url='https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/e0a/803ae9fa8a1d91d191521851ceddf36ee84c3.jpeg',
+                                    similarity=0.451,
+                                    url_small='https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/e0a/803ae9fa8a1d91d191521851ceddf36ee84c3.small.jpeg',
+                                    license_name='CC BY-NC 4.0',
+                                    license_url='https://creativecommons.org/licenses/by-nc/4.0/',
+                                    citation='Stephan and Unelle Knoetze',
+                                ),
+                            ],
+                            details={'language': 'en', 'entity_id': 'e196761efe72cbc8'},
+                        )
+                    ],
+                )
+            ),
+            disease=None,
+        ),
+        status=IdentificationStatus.COMPLETED,
+        sla_compliant_client=True,
+        sla_compliant_system=True,
+        created=datetime.fromtimestamp(1701863325.941297),
+        completed=datetime.fromtimestamp(1701863326.55468),
+        feedback=None,
+    )
+
+
+@pytest.fixture
+def raw_identification_dict():
+    return {
+        'access_token': 'xMafoSAC9lwuqFs',
+        'model_version': 'plant_id:3.4.1',
+        'custom_id': None,
+        'input': {
+            'latitude': 49.2034,
+            'longitude': 16.57318,
+            'classification_level': 'all',
+            'classification_raw': True,
+            'similar_images': True,
+            'images': ['https://plant.id/media/imgs/3947041816fc4a8cb040f837e8774042.jpg'],
+            'datetime': '2023-12-06T11:48:45.941297+00:00',
+        },
+        'result': {
+            'is_plant': {'probability': 1.0, 'binary': True, 'threshold': 0.5},
+            'classification': {
+                'suggestions': {
+                    'species': [
+                        {
+                            'id': '4ba05f1050481731',
+                            'name': 'Aloe vera',
+                            'probability': 0.99,
+                            'similar_images': [
+                                {
+                                    'id': 'ac89509bf07b85d202d9f53094eea6394ce354c4',
+                                    'url': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/ac8/9509bf07b85d202d9f53094eea6394ce354c4.jpeg',
+                                    'similarity': 0.764,
+                                    'url_small': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/ac8/9509bf07b85d202d9f53094eea6394ce354c4.small.jpeg',
+                                },
+                                {
+                                    'id': 'd688b6a280e81d1a5b7bc2d0d2b8a1497f360551',
+                                    'url': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/d68/8b6a280e81d1a5b7bc2d0d2b8a1497f360551.jpeg',
+                                    'similarity': 0.707,
+                                    'url_small': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/d68/8b6a280e81d1a5b7bc2d0d2b8a1497f360551.small.jpeg',
+                                },
+                            ],
+                            'details': {'language': 'en', 'entity_id': '4ba05f1050481731'},
+                        }
+                    ],
+                    'genus': [
+                        {
+                            'id': 'f1e13ba892d06f23',
+                            'name': 'Aloe',
+                            'probability': 0.99,
+                            'similar_images': [
+                                {
+                                    'id': 'e59f28dadd4c4cb5f03f0f93865bddbc6ef17b92',
+                                    'url': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/e59/f28dadd4c4cb5f03f0f93865bddbc6ef17b92.jpeg',
+                                    'similarity': 0.73,
+                                    'url_small': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/e59/f28dadd4c4cb5f03f0f93865bddbc6ef17b92.small.jpeg',
+                                },
+                                {
+                                    'id': 'c2d7e69290c189858185e9a91d9fb2e8126345b8',
+                                    'url': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/c2d/7e69290c189858185e9a91d9fb2e8126345b8.jpg',
+                                    'similarity': 0.66,
+                                    'url_small': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/c2d/7e69290c189858185e9a91d9fb2e8126345b8.small.jpg',
+                                },
+                            ],
+                            'details': {'language': 'en', 'entity_id': 'f1e13ba892d06f23'},
+                        }
+                    ],
+                    'infraspecies': [
+                        {
+                            'id': 'e196761efe72cbc8',
+                            'name': 'Gasteria carinata var. carinata',
+                            'probability': 0.34154388,
+                            'similar_images': [
+                                {
+                                    'id': 'c5b08b131915d6d36a6fbe1313c780e89510bcbf',
+                                    'url': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/c5b/08b131915d6d36a6fbe1313c780e89510bcbf.jpeg',
+                                    'license_name': 'CC BY-NC 4.0',
+                                    'license_url': 'https://creativecommons.org/licenses/by-nc/4.0/',
+                                    'citation': 'Adriaan Grobler',
+                                    'similarity': 0.48,
+                                    'url_small': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/c5b/08b131915d6d36a6fbe1313c780e89510bcbf.small.jpeg',
+                                },
+                                {
+                                    'id': 'e0a803ae9fa8a1d91d191521851ceddf36ee84c3',
+                                    'url': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/e0a/803ae9fa8a1d91d191521851ceddf36ee84c3.jpeg',
+                                    'license_name': 'CC BY-NC 4.0',
+                                    'license_url': 'https://creativecommons.org/licenses/by-nc/4.0/',
+                                    'citation': 'Stephan and Unelle Knoetze',
+                                    'similarity': 0.451,
+                                    'url_small': 'https://plant-id.ams3.cdn.digitaloceanspaces.com/similar_images/3/e0a/803ae9fa8a1d91d191521851ceddf36ee84c3.small.jpeg',
+                                },
+                            ],
+                            'details': {'language': 'en', 'entity_id': 'e196761efe72cbc8'},
+                        }
+                    ],
+                }
+            },
+        },
+        'status': 'COMPLETED',
+        'sla_compliant_client': True,
+        'sla_compliant_system': True,
+        'created': 1701863325.941297,
+        'completed': 1701863326.55468,
+    }
+
+
+@pytest.fixture
 def image_path():
     return IMAGE_DIR / 'aloe-vera.jpg'
 
@@ -279,7 +500,15 @@ def image_base64(image_path):
 
 
 def test_identify(
-    api, api_key, identification, identification_dict, image_path, image_base64, requests_mock, request_matcher
+    api,
+    api_key,
+    identification,
+    identification_dict,
+    image_path,
+    image_base64,
+    request_matcher,
+    raw_identification,
+    raw_identification_dict,
 ):
     # check parsing
     request_matcher.check_identify_request(expected_result=identification)
@@ -356,6 +585,14 @@ def test_identify(
         expected_payload=[('classification_level', 'genus')], classification_level=ClassificationLevel.GENUS
     )
     request_matcher.check_identify_request(raises=ValueError, classification_level='non-existing')
+
+    # check classification_raw
+    request_matcher.check_identify_request(
+        expected_payload=[('classification_raw', True)],
+        output=raw_identification_dict,
+        expected_result=raw_identification,
+        classification_raw=True,
+    )
 
 
 def test_get_identification(request_matcher):

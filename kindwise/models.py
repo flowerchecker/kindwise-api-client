@@ -176,16 +176,82 @@ class PlantResult:
 
 @dataclass
 class PlantIdentification(Identification):
-    result: PlantResult
+    result: PlantResult | None
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict) -> 'PlantIdentification':
         return cls(
             access_token=data['access_token'],
             model_version=data['model_version'],
             custom_id=data['custom_id'],
             input=Input.from_dict(data['input']),
             result=None if 'result' not in data else PlantResult.from_dict(data['result']),
+            status=IdentificationStatus(data['status']),
+            sla_compliant_client=data['sla_compliant_client'],
+            sla_compliant_system=data['sla_compliant_system'],
+            created=datetime.fromtimestamp(data['created']),
+            completed=None if data['completed'] is None else datetime.fromtimestamp(data['completed']),
+            feedback=Feedback.from_dict(data['feedback']) if 'feedback' in data else None,
+        )
+
+
+@dataclass
+class TaxaSpecificSuggestion:
+    genus: list[Suggestion]
+    species: list[Suggestion]
+    infraspecies: list[Suggestion] | None
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            genus=[Suggestion.from_dict(suggestion) for suggestion in data['genus']],
+            species=[Suggestion.from_dict(suggestion) for suggestion in data['species']],
+            infraspecies=None
+            if 'infraspecies' not in data
+            else [Suggestion.from_dict(suggestion) for suggestion in data['infraspecies']],
+        )
+
+
+@dataclass
+class RawClassification:
+    suggestions: TaxaSpecificSuggestion
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            suggestions=TaxaSpecificSuggestion.from_dict(data['suggestions']),
+        )
+
+
+@dataclass
+class RawPlantResult:
+    is_plant: ResultEvaluation
+    is_healthy: ResultEvaluation | None
+    classification: RawClassification
+    disease: Classification | None
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            is_plant=ResultEvaluation.from_dict(data['is_plant']),
+            is_healthy=ResultEvaluation.from_dict(data['is_healthy']) if 'is_healthy' in data else None,
+            classification=RawClassification.from_dict(data['classification']),
+            disease=Classification.from_dict(data['disease']) if 'disease' in data else None,
+        )
+
+
+@dataclass
+class RawPlantIdentification(Identification):
+    result: RawPlantResult | None
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'RawPlantIdentification':
+        return cls(
+            access_token=data['access_token'],
+            model_version=data['model_version'],
+            custom_id=data['custom_id'],
+            input=Input.from_dict(data['input']),
+            result=None if 'result' not in data else RawPlantResult.from_dict(data['result']),
             status=IdentificationStatus(data['status']),
             sla_compliant_client=data['sla_compliant_client'],
             sla_compliant_system=data['sla_compliant_system'],
