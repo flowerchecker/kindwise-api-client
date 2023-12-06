@@ -42,6 +42,16 @@ class PlantApi(KindwiseApi):
             payload['health'] = 'all'
         return payload
 
+    @staticmethod
+    def _build_details(details: str | list[str] = None, disease_details: str | list[str] = None, health: bool = False):
+        if isinstance(details, str):
+            details = details.split(',')
+        if disease_details is not None and health:
+            disease_details = disease_details.split(',') if isinstance(disease_details, str) else disease_details
+            details = [] if details is None else details
+            details = list(dict.fromkeys(details + disease_details))
+        return details
+
     def identify(
         self,
         image: Path | str | bytes | BinaryIO | list[str | Path | bytes | BinaryIO],
@@ -58,15 +68,9 @@ class PlantApi(KindwiseApi):
         max_image_size: int | None = 1500,
         as_dict: bool = False,
     ) -> PlantIdentification | dict:
-        if isinstance(details, str):
-            details = details.split(',')
-        if disease_details is not None and health:
-            disease_details = disease_details.split(',') if isinstance(disease_details, str) else disease_details
-            details = [] if details is None else details
-            details = list(dict.fromkeys(details + disease_details))
         identification = super().identify(
             image=image,
-            details=details,
+            details=self._build_details(details, disease_details, health),
             language=language,
             asynchronous=asynchronous,
             similar_images=similar_images,
@@ -81,9 +85,19 @@ class PlantApi(KindwiseApi):
         return identification if as_dict else PlantIdentification.from_dict(identification)
 
     def get_identification(
-        self, token: str | int, details: str | list[str] = None, language: str | list[str] = None, as_dict: bool = False
+        self,
+        token: str | int,
+        details: str | list[str] = None,
+        disease_details: str | list[str] = None,
+        language: str | list[str] = None,
+        as_dict: bool = False,
     ) -> PlantIdentification | dict:
-        identification = super().get_identification(token=token, details=details, language=language, as_dict=True)
+        identification = super().get_identification(
+            token=token,
+            details=self._build_details(details, disease_details, health=True),
+            language=language,
+            as_dict=True,
+        )
         return identification if as_dict else PlantIdentification.from_dict(identification)
 
     def _build_query(

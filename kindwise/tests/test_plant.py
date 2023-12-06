@@ -386,6 +386,13 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
     assert request_record.url == api.identification_url
 
 
+def test_get_identification(request_matcher):
+    request_matcher.check_get_identification_request('details=image', details='image')
+    request_matcher.check_get_identification_request(
+        'details=image,treatment', details='image', disease_details='treatment'
+    )
+
+
 @pytest.fixture
 def health_assessment():
     return HealthAssessment(
