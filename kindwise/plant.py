@@ -5,7 +5,7 @@ from typing import BinaryIO
 
 from kindwise import settings
 from kindwise.core import KindwiseApi, InputType
-from kindwise.models import PlantIdentification, HealthAssessment
+from kindwise.models import PlantIdentification, HealthAssessment, ClassificationLevel
 
 
 class PlantApi(KindwiseApi):
@@ -35,11 +35,16 @@ class PlantApi(KindwiseApi):
         self,
         *args,
         health: bool = False,
+        classification_level: str | ClassificationLevel = None,
         **kwargs,
     ):
         payload = super()._build_payload(*args, **kwargs)
         if health:
             payload['health'] = 'all'
+        if classification_level is not None:
+            if not isinstance(classification_level, ClassificationLevel):
+                classification_level = ClassificationLevel(classification_level)
+            payload['classification_level'] = classification_level.value
         return payload
 
     @staticmethod
@@ -63,6 +68,7 @@ class PlantApi(KindwiseApi):
         similar_images: bool = True,
         latitude_longitude: tuple[float, float] = None,
         health: bool = False,
+        classification_level: str | ClassificationLevel = None,
         custom_id: int | None = None,
         date_time: datetime | str | float | None = None,
         max_image_size: int | None = 1500,
@@ -80,6 +86,7 @@ class PlantApi(KindwiseApi):
             date_time=date_time,
             max_image_size=max_image_size,
             input_type=input_type,
+            classification_level=classification_level,
             as_dict=True,
         )
         return identification if as_dict else PlantIdentification.from_dict(identification)

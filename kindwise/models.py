@@ -66,6 +66,13 @@ class Result:
 
 
 @dataclass
+class ClassificationLevel(str, enum.Enum):
+    ALL = 'all'
+    GENUS = 'genus'
+    SPECIES = 'species'
+
+
+@dataclass
 class Input:
     images: list[str]
     datetime: datetime

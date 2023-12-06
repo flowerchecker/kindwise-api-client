@@ -15,6 +15,7 @@ from kindwise.models import (
     HealthAssessment,
     HealthAssessmentResult,
     IdentificationStatus,
+    ClassificationLevel,
 )
 from .conftest import IMAGE_DIR, run_test_requests_to_server, staging_api, run_test_available_details
 from ..core import InputType
@@ -278,26 +279,29 @@ def image_base64(image_path):
         return base64.b64encode(file.read()).decode("ascii")
 
 
-def test_identify(api, api_key, identification, identification_dict, image_path, image_base64, requests_mock):
-    requests_mock.post(
-        f'{api.identification_url}',
-        json=identification_dict,
-    )
-    response_identification = api.identify(image_path, health=True, max_image_size=None)
-    assert isinstance(response_identification.status, IdentificationStatus), type(response_identification.status)
-    assert response_identification.status == IdentificationStatus.COMPLETED
-    assert len(requests_mock.request_history) == 1
-    request_record = requests_mock.request_history.pop()
-    assert request_record.method == 'POST'
-    assert request_record.url == f'{api.identification_url}'
-    assert request_record.headers['Content-Type'] == 'application/json'
-    assert request_record.headers['Api-Key'] == api_key
-    assert request_record.json() == {'images': [image_base64], 'similar_images': True, 'health': 'all'}
-    assert response_identification == identification
+def test_identify(
+    api, api_key, identification, identification_dict, image_path, image_base64, requests_mock, request_matcher
+):
+    # check parsing
+    request_matcher.check_identify_request(expected_result=identification)
 
-    response_identification = api.identify(image_path, as_dict=True)
-    request_record = requests_mock.request_history.pop()
-    assert response_identification == identification_dict
+    # check as_dict
+    request_matcher.check_identify_request(expected_result=identification_dict, as_dict=True)
+
+    # check health
+    request_matcher.check_identify_request(expected_payload=[('health', 'all')], health=True)
+
+    # check similar images
+    request_matcher.check_identify_request(expected_payload=[('similar_images', False)], similar_images=False)
+    request_matcher.check_identify_request(expected_payload=[('similar_images', True)])
+
+    # check latitude_longitude
+    request_matcher.check_identify_request(
+        expected_payload=[('latitude', 1.0), ('longitude', 2.0)], latitude_longitude=(1.0, 2.0)
+    )
+
+    # check languages
+    request_matcher.check_identify_request(expected_query='language=cz,de', language=['cz', 'de'])
 
     response_identification = api.identify(
         image_path,
@@ -305,6 +309,12 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
         details=['image'],
         language='cz',
         latitude_longitude=(1.0, 2.0),
+    # check details
+    request_matcher.check_identify_request(expected_query='details=image', details='image')
+
+    # check async
+    request_matcher.check_identify_request(expected_query='async=true', asynchronous=True)
+
         max_image_size=None,
     )
     assert len(requests_mock.request_history) == 1
@@ -370,20 +380,34 @@ def test_identify(api, api_key, identification, identification_dict, image_path,
             'images': [image_base64],
             'similar_images': True,
         }
+    # check custom_id
+    request_matcher.check_identify_request(expected_payload=[('custom_id', 1)], custom_id=1)
+
+    # check date_time
+    date = '2023-11-28T08:38:48.538187+00:00'
+    request_matcher.check_identify_request(expected_payload=[('datetime', date)], date_time=date)
 
     # check disease details
-    def run_test_disease_details(details, disease_details, expected_details):
-        api.identify(image_path, details=details, disease_details=disease_details, health=True)
-        request_record = requests_mock.request_history.pop()
-        assert request_record.url == f'{api.identification_url}?details={expected_details}'
+    request_matcher.check_identify_request(expected_query='details=image', disease_details='image', health=True)
+    request_matcher.check_identify_request(
+        expected_query='details=image', disease_details='image', details='image', health=True
+    )
+    request_matcher.check_identify_request(
+        expected_query='details=image,treatment', disease_details='image,treatment', health=True
+    )
+    request_matcher.check_identify_request(
+        expected_query='details=image,treatment', disease_details=['image', 'treatment'], health=True
+    )
+    request_matcher.check_identify_request(expected_query='', disease_details='image')
 
-    run_test_disease_details(None, 'image', 'image')
-    run_test_disease_details('image', 'image', 'image')
-    run_test_disease_details('image', 'image,treatment', 'image,treatment')
-    run_test_disease_details('image', ['image', 'treatment'], 'image,treatment')
-    api.identify(image_path, disease_details='image')
-    request_record = requests_mock.request_history.pop()
-    assert request_record.url == api.identification_url
+    # check classification_level
+    request_matcher.check_identify_request(
+        expected_payload=[('classification_level', 'all')], classification_level='all'
+    )
+    request_matcher.check_identify_request(
+        expected_payload=[('classification_level', 'genus')], classification_level=ClassificationLevel.GENUS
+    )
+    request_matcher.check_identify_request(raises=ValueError, classification_level='non-existing')
 
 
 def test_get_identification(request_matcher):

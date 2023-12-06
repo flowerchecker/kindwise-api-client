@@ -88,21 +88,32 @@ class RequestMatcher:
         self,
         expected_payload: list[tuple[str, str]] = None,
         expected_query: str = None,
+        expected_result=None,
+        raises: type[Exception] = None,
         **kwargs,
     ):
-        self.api.identify(self.image_path, **kwargs)
+        if raises is None:
+            if 'image' not in kwargs:
+                kwargs['image'] = self.image_path
+            response = self.api.identify(**kwargs)
+        else:
+            with pytest.raises(raises):
+                self.api.identify(self.image_path, **kwargs)
+            return
         request_record = self.requests_mock.request_history.pop()
         assert request_record.method == 'POST'
         assert request_record.headers['Content-Type'] == 'application/json'
         assert request_record.headers['Api-Key'] == self.api_key
         if expected_query is not None:
-            if not expected_query.startswith('?'):
+            if not expected_query.startswith('?') and len(expected_query) > 0:
                 expected_query = '?' + expected_query
             assert request_record.url == f'{self.api.identification_url}{expected_query}'
         if expected_payload is not None:
             payload = request_record.json()
             for key, value in expected_payload:
                 assert payload[key] == value
+        if expected_result is not None:
+            assert response == expected_result
 
     def check_get_identification_request(self, expected_query: str = None, **kwargs):
         response_identification = self.api.get_identification(self.identification_dict['access_token'], **kwargs)
