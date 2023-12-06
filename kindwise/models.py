@@ -65,7 +65,6 @@ class Result:
         return cls(classification=Classification.from_dict(data['classification']))
 
 
-@dataclass
 class ClassificationLevel(str, enum.Enum):
     ALL = 'all'
     GENUS = 'genus'
@@ -175,8 +174,29 @@ class PlantResult:
 
 
 @dataclass
+class PlantInput(Input):
+    classification_level: ClassificationLevel | None
+    classification_raw: bool
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'PlantInput':
+        return cls(
+            images=data['images'],
+            datetime=datetime.fromisoformat(data['datetime']),
+            latitude=data['latitude'],
+            longitude=data['longitude'],
+            similar_images=data['similar_images'],
+            classification_level=ClassificationLevel(data['classification_level'])
+            if 'classification_level' in data
+            else None,
+            classification_raw=data.get('classification_raw', False),
+        )
+
+
+@dataclass
 class PlantIdentification(Identification):
     result: PlantResult | None
+    input: PlantInput
 
     @classmethod
     def from_dict(cls, data: dict) -> 'PlantIdentification':
@@ -184,7 +204,7 @@ class PlantIdentification(Identification):
             access_token=data['access_token'],
             model_version=data['model_version'],
             custom_id=data['custom_id'],
-            input=Input.from_dict(data['input']),
+            input=PlantInput.from_dict(data['input']),
             result=None if 'result' not in data else PlantResult.from_dict(data['result']),
             status=IdentificationStatus(data['status']),
             sla_compliant_client=data['sla_compliant_client'],

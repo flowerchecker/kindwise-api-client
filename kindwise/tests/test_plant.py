@@ -20,6 +20,7 @@ from kindwise.models import (
     RawPlantResult,
     RawClassification,
     TaxaSpecificSuggestion,
+    PlantInput,
 )
 from .conftest import IMAGE_DIR, run_test_requests_to_server, staging_api, run_test_available_details
 from ..plant import PlantApi
@@ -37,12 +38,14 @@ def identification():
         access_token='biXpfz7Fbe6cNLw',
         model_version='plant_id:3.4.1',
         custom_id=None,
-        input=Input(
+        input=PlantInput(
             images=['https://plant.id/media/imgs/87fd66a519c648deb8615c30fa734709.jpg'],
             datetime=datetime.fromisoformat('2023-11-28T08:38:48.538187+00:00'),
             latitude=None,
             longitude=None,
             similar_images=True,
+            classification_level=None,
+            classification_raw=False,
         ),
         result=PlantResult(
             is_plant=ResultEvaluation(probability=1.0, binary=True, threshold=0.5),
@@ -819,9 +822,19 @@ def test_requests_to_plant_server(api: PlantApi, image_path):
         date_time = datetime.now()
         print(f'Health assessment asynchronous with {custom_id=} and {date_time=}:')
         health_assessment = api.health_assessment(
-            image_path, asynchronous=True, custom_id=custom_id, date_time=date_time
+            image_path,
+            asynchronous=True,
+            custom_id=custom_id,
+            date_time=date_time,
+            latitude_longitude=(49.20340, 16.57318),
+            full_disease_list=True,
         )
         print(health_assessment)
+        assert health_assessment.input.datetime == date_time
+        assert health_assessment.input.similar_images
+        assert health_assessment.input.latitude == 49.20340
+        assert health_assessment.input.longitude == 16.57318
+        assert health_assessment.custom_id == custom_id
         print()
 
         print('Feedback for health assessment:')
