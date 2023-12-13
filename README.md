@@ -102,7 +102,7 @@ Creates a new identification. In one identification, you can include up to 5 ima
 import base64
 from datetime import datetime
 
-from kindwise.models import PlantIdentification
+from kindwise.models import PlantIdentification, ClassificationLevel
 from kindwise.plant import PlantApi
 
 api = PlantApi(api_key='your_api_key')
@@ -132,6 +132,17 @@ date_time = datetime.now()
 # default image size is 1500px, can be turned off by setting max_image_size to None
 # be aware that our API has limit 25Mpx(e.g. 5000px x 5000px)
 max_image_size = 1500
+# you can specify into what depth should be the plant classified
+# you can choose from ClassificationLevel.SPECIES, ClassificationLevel.GENUS, ClassificationLevel.ALL
+# default is ClassificationLevel.SPECIES
+classification_level = ClassificationLevel.SPECIES
+# in case you want to merge results for different taxon levels yourself, you can set classification_raw=True
+# be aware that the result will be in type kindwise.models.RawPlantIdentification
+classification_raw = False
+# if our api will be ahead of this sdk and you do not want to wait for update,
+# you can specify extra_get_params or extra_post_params
+extra_get_params = None  # default
+extra_post_params = None  # default
 identification: PlantIdentification = api.identify(
     images,
     details=details,
@@ -143,6 +154,10 @@ identification: PlantIdentification = api.identify(
     custom_id=custom_id,
     date_time=date_time,
     max_image_size=max_image_size,
+    classification_level=classification_level,
+    classification_raw=classification_raw,
+    extra_get_params=extra_get_params,
+    extra_post_params=extra_post_params,
 )
 
 # identification created from stream
@@ -278,6 +293,10 @@ date_time = datetime.now()
 # default image size is 1500px, can be turned off by setting max_image_size to None
 # be aware that our API has limit 25Mpx(e.g. 5000px x 5000px)
 max_image_size = 1500
+# if our api will be ahead of this sdk and you do not want to wait for update,
+# you can specify extra_get_params or extra_post_params
+extra_get_params = None  # default
+extra_post_params = None  # default
 identification: HealthAssessment = api.health_assessment(
     images,
     details=details,
