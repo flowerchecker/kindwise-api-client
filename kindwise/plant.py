@@ -117,7 +117,7 @@ class PlantApi(KindwiseApi):
     ) -> PlantIdentification | dict:
         identification = super().get_identification(
             token=token,
-            details=self._build_details(details, disease_details, health=True),
+            details=self._build_details(details, disease_details),
             language=language,
             as_dict=True,
             extra_get_params=extra_get_params,
