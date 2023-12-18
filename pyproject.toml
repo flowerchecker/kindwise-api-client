@@ -5,7 +5,7 @@ description = "Python SDK toolkit for integrating Kindwise API"
 authors = ["Simon Plhak <simon.plhak@flowerchecker.com>"]
 license = "MIT"
 readme = "README.md"
-repository = "https://gitlab.com/flowerchecker/kindwise-sdk"
+repository = "https://github.com/flowerchecker/kindwise"
 packages = [
     { include = "kindwise"},
 ]
