@@ -42,7 +42,7 @@ class KindwiseApi(abc.ABC):
             with open(image, 'rb') as f:
                 buffer = io.BytesIO(f.read())
         elif hasattr(image, 'read') and hasattr(image, 'seek') and hasattr(image, 'mode'):  # BinaryIO
-            if 'rb' not in image.mode:  # what will it do if this if is not there
+            if 'rb' not in image.mode:  # what will it do if this is not there
                 raise ValueError(f'Invalid file mode {image.mode=}, expected "rb"(binary mode)')
             image.seek(0)
             buffer = io.BytesIO(image.read())
