@@ -512,13 +512,25 @@ def test_identify(
     request_matcher,
     raw_identification,
     raw_identification_dict,
+    health_assessment_dict,
+    health_assessment,
 ):
     # check parsing
     request_matcher.check_identify_request(expected_result=identification)
     # check as_dict
     request_matcher.check_identify_request(expected_result=identification_dict, as_dict=True)
-    # check health
-    request_matcher.check_identify_request(expected_payload=[('health', 'all')], health=True)
+    # check health - all
+    request_matcher.check_identify_request(
+        expected_payload=[('health', 'all')],
+        health='all',
+    )
+    # check health - only
+    request_matcher.check_identify_request(
+        expected_payload=[('health', 'only')],
+        health='only',
+        output=health_assessment_dict,
+        expected_result=health_assessment,
+    )
     # check similar images
     request_matcher.check_identify_request(expected_payload=[('similar_images', False)], similar_images=False)
     request_matcher.check_identify_request(expected_payload=[('similar_images', True)])
@@ -567,7 +579,7 @@ def test_identify(
     request_matcher.check_identify_request(
         expected_query='details=image,treatment', disease_details=['image', 'treatment'], health=True
     )
-    request_matcher.check_identify_request(expected_query='', disease_details='image')
+    request_matcher.check_identify_request(expected_query='details=image', disease_details='image')
     # check classification_level
     request_matcher.check_identify_request(
         expected_payload=[('classification_level', 'all')], classification_level='all'

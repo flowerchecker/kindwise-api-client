@@ -301,7 +301,7 @@ class HealthAssessment(Identification):
     result: HealthAssessmentResult | None
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict) -> 'HealthAssessment':
         return cls(
             access_token=data['access_token'],
             model_version=data['model_version'],

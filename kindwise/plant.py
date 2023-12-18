@@ -36,14 +36,14 @@ class PlantApi(KindwiseApi):
     def _build_payload(
         self,
         *args,
-        health: bool = False,
+        health: str = None,
         classification_level: str | ClassificationLevel = None,
         classification_raw: bool = False,
         **kwargs,
     ):
         payload = super()._build_payload(*args, **kwargs)
-        if health:
-            payload['health'] = 'all'
+        if health is not None:
+            payload['health'] = health
         if classification_level is not None:
             if not isinstance(classification_level, ClassificationLevel):
                 classification_level = ClassificationLevel(classification_level)
@@ -53,10 +53,10 @@ class PlantApi(KindwiseApi):
         return payload
 
     @staticmethod
-    def _build_details(details: str | list[str] = None, disease_details: str | list[str] = None, health: bool = False):
+    def _build_details(details: str | list[str] = None, disease_details: str | list[str] = None):
         if isinstance(details, str):
             details = details.split(',')
-        if disease_details is not None and health:
+        if disease_details is not None:
             disease_details = disease_details.split(',') if isinstance(disease_details, str) else disease_details
             details = [] if details is None else details
             details = list(dict.fromkeys(details + disease_details))
@@ -71,7 +71,7 @@ class PlantApi(KindwiseApi):
         asynchronous: bool = False,
         similar_images: bool = True,
         latitude_longitude: tuple[float, float] = None,
-        health: bool = False,
+        health: str = None,
         classification_level: str | ClassificationLevel = None,
         classification_raw: bool = False,
         custom_id: int | None = None,
@@ -80,10 +80,10 @@ class PlantApi(KindwiseApi):
         as_dict: bool = False,
         extra_get_params: str = None,
         extra_post_params: str = None,
-    ) -> PlantIdentification | RawPlantIdentification | dict:
+    ) -> PlantIdentification | RawPlantIdentification | HealthAssessment | dict:
         identification = super().identify(
             image=image,
-            details=self._build_details(details, disease_details, health),
+            details=self._build_details(details, disease_details),
             language=language,
             asynchronous=asynchronous,
             similar_images=similar_images,
@@ -102,6 +102,8 @@ class PlantApi(KindwiseApi):
             return identification
         if classification_raw:
             return RawPlantIdentification.from_dict(identification)
+        if health == 'only':
+            return HealthAssessment.from_dict(identification)
         return PlantIdentification.from_dict(identification)
 
     def get_identification(

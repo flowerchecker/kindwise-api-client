@@ -124,9 +124,10 @@ language = ['en', 'cs']
 similar_images = True
 # where was an image taken
 latitude_longitude = (49.20340, 16.57318)
-# you can include health assessment in your identification by specifying health=True,
+# you can include health assessment in your identification by specifying health='all',
+# you can also use health='only' to get HealthAssessment(health assessment only)
 # health assessment is only available for plant.id
-health = True
+health = 'all'
 # custom id is used to identify identification in your system, but can be replaced with access_token
 custom_id = 123
 # when was an image taken, datetime can be specified as a datetime object, timestamp, or string in ISO format
