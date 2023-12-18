@@ -87,7 +87,7 @@ local timezone.
 Returns details which can be used to specify additional information for `identify` method. `
 
 ```python
-from kindwise.plant import PlantApi
+from kindwise import PlantApi
 
 api = PlantApi()
 
@@ -102,8 +102,7 @@ Creates a new identification. In one identification, you can include up to 5 ima
 import base64
 from datetime import datetime
 
-from kindwise.models import PlantIdentification, ClassificationLevel
-from kindwise.plant import PlantApi
+from kindwise import PlantApi, PlantIdentification, ClassificationLevel
 
 api = PlantApi(api_key='your_api_key')
 # this creates one identification composed of 5 images(not 5 different identifications)
@@ -181,8 +180,7 @@ When you don't want to wait until the identification is finished, you can specif
 get `access_token`  or `custom_id` if specified and retrieve the answer later.
 
 ```python
-from kindwise.plant import PlantApi
-from kindwise.models import PlantIdentification
+from kindwise import PlantApi, PlantIdentification
 
 api = PlantApi(api_key='your_api_key')
 
@@ -199,8 +197,7 @@ identification: PlantIdentification = api.get_identification(identification.acce
 Get identification by token. You can specify which details you want to get. We store your identifications for 6 months.
 
 ```python
-from kindwise.models import PlantIdentification
-from kindwise.plant import PlantApi
+from kindwise import PlantApi, PlantIdentification
 
 api = PlantApi(api_key='your_api_key')
 
@@ -217,7 +214,7 @@ identification: PlantIdentification = api.get_identification(access_token, detai
 Deletes identification from our database. You can specify identification by access_token or custom_id.
 
 ```python
-from kindwise.plant import PlantApi
+from kindwise import PlantApi
 
 api = PlantApi(api_key='your_api_key')
 
@@ -230,8 +227,7 @@ api.delete_identification(custom_id)
 Gives you information about your api key usage.
 
 ```python
-from kindwise.plant import PlantApi
-from kindwise.models import UsageInfo
+from kindwise import PlantApi, UsageInfo
 
 api = PlantApi(api_key='your_api_key')
 
@@ -244,7 +240,7 @@ Send feedback for identification. You can specify a comment(string) or rating(in
 and rating must be specified. You can specify identification by access_token or custom_id.
 
 ```python
-from kindwise.plant import PlantApi
+from kindwise import PlantApi
 
 api = PlantApi(api_key='your_api_key')
 
@@ -258,7 +254,7 @@ Returns details which can be used to specify additional information for `health_
 plant.id.
 
 ```python
-from kindwise.plant import PlantApi
+from kindwise import PlantApi
 
 api = PlantApi()
 
@@ -273,8 +269,7 @@ method is similar to `identify` method, but it returns only health assessment. D
 ```python
 from datetime import datetime
 
-from kindwise.models import HealthAssessment
-from kindwise.plant import PlantApi
+from kindwise import PlantApi, HealthAssessment
 
 api = PlantApi(api_key='your_api_key')
 # the same as in identify method
@@ -322,8 +317,7 @@ Get a health assessment for identification. You can specify which details you wa
 for 6 months.
 
 ```python
-from kindwise.models import HealthAssessment
-from kindwise.plant import PlantApi
+from kindwise import PlantApi, HealthAssessment
 
 api = PlantApi(api_key='your_api_key')
 
@@ -346,7 +340,7 @@ identification: HealthAssessment = api.get_health_assessment(
 Delete health assessment for identification.
 
 ```python
-from kindwise.plant import PlantApi
+from kindwise import PlantApi
 
 api = PlantApi(api_key='your_api_key')
 
