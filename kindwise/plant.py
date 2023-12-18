@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import BinaryIO
 
 from kindwise import settings
@@ -62,7 +62,7 @@ class PlantApi(KindwiseApi):
 
     def identify(
         self,
-        image: Path | str | bytes | BinaryIO | list[str | Path | bytes | BinaryIO],
+        image: PurePath | str | bytes | BinaryIO | list[str | PurePath | bytes | BinaryIO],
         details: str | list[str] = None,
         disease_details: str | list[str] = None,
         language: str | list[str] = None,
@@ -136,7 +136,7 @@ class PlantApi(KindwiseApi):
 
     def health_assessment(
         self,
-        image: Path | str | bytes | BinaryIO | list[str | Path | bytes | BinaryIO],
+        image: PurePath | str | bytes | BinaryIO | list[str | PurePath | bytes | BinaryIO],
         details: str | list[str] = None,
         language: str | list[str] = None,
         asynchronous: bool = False,

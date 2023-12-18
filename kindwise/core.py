@@ -3,7 +3,7 @@ import base64
 import io
 import json
 from datetime import datetime
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import BinaryIO, Any
 
 import requests
@@ -37,7 +37,8 @@ class KindwiseApi(abc.ABC):
         return requests.request(method, url, json=data, headers=headers)
 
     def _encode_image(self, image: Path | str | bytes | BinaryIO, max_image_size: int | None) -> str:
-        if isinstance(image, Path):  # Path
+    def _encode_image(image: PurePath | str | bytes | BinaryIO, max_image_size: int | None) -> str:
+        if isinstance(image, PurePath):  # Path
             with open(image, 'rb') as f:
                 buffer = io.BytesIO(f.read())
         elif hasattr(image, 'read') and hasattr(image, 'seek') and hasattr(image, 'mode'):  # BinaryIO
@@ -81,7 +82,7 @@ class KindwiseApi(abc.ABC):
 
     def _build_payload(
         self,
-        image: Path | str | list[str] | list[Path],
+        image: PurePath | str | list[str | PurePath],
         similar_images: bool = True,
         latitude_longitude: tuple[float, float] = None,
         custom_id: int | None = None,
@@ -117,7 +118,7 @@ class KindwiseApi(abc.ABC):
 
     def identify(
         self,
-        image: Path | str | bytes | BinaryIO | list[str | Path | bytes | BinaryIO],
+        image: PurePath | str | bytes | BinaryIO | list[str | PurePath | bytes | BinaryIO],
         details: str | list[str] = None,
         language: str | list[str] = None,
         asynchronous: bool = False,
