@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "kindwise"
+name = "kindwise-api-client"
 version = "0.1.2"
 description = "Python SDK toolkit for integrating Kindwise API"
 authors = ["Simon Plhak <simon.plhak@flowerchecker.com>"]
