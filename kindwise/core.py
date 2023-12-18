@@ -71,6 +71,8 @@ class KindwiseApi(abc.ABC):
                 new_height = int(new_width / aspect_ratio)
                 resized_image = img.resize((new_width, new_height))
             output_buffer = io.BytesIO()
+            if resized_image.mode != 'RGB':
+                resized_image = resized_image.convert('RGB')
             resized_image.save(output_buffer, format='JPEG')
             resized_image_bytes = output_buffer.getvalue()
             output_buffer.close()

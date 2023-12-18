@@ -1,6 +1,7 @@
 import base64
 import io
 from datetime import datetime
+from pathlib import PurePath
 
 import pytest
 from PIL import Image
@@ -16,6 +17,7 @@ from kindwise.models import (
     IdentificationStatus,
 )
 from .conftest import IMAGE_DIR
+from .. import settings
 
 
 @pytest.fixture
@@ -204,6 +206,12 @@ def test_identify(
         request_matcher.check_identify_request(
             expected_payload=[('images', [image_base64])], max_image_size=None, image=f.read()
         )
+    # accept image as a PurePath and accept png format
+    pure_path = PurePath(settings.APP_DIR) / 'tests' / 'resources' / 'images' / 'padli.png'
+    pure_path_base64 = api._encode_image(pure_path, 1500)
+    request_matcher.check_identify_request(
+        expected_payload=[('images', [pure_path_base64])], image=pure_path
+    )
     # check if image is resized
     with open(image_path, 'rb') as f:
         img = Image.open(f)
