@@ -36,7 +36,7 @@ class KindwiseApi(abc.ABC):
         }
         return requests.request(method, url, json=data, headers=headers)
 
-    def _encode_image(self, image: Path | str | bytes | BinaryIO, max_image_size: int | None) -> str:
+    @staticmethod
     def _encode_image(image: PurePath | str | bytes | BinaryIO, max_image_size: int | None) -> str:
         if isinstance(image, PurePath):  # Path
             with open(image, 'rb') as f:
