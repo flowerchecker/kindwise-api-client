@@ -3,6 +3,8 @@ from datetime import datetime
 from pathlib import Path, PurePath
 from typing import BinaryIO
 
+from PIL import Image
+
 from kindwise import settings
 from kindwise.core import KindwiseApi
 from kindwise.models import PlantIdentification, HealthAssessment, ClassificationLevel, RawPlantIdentification
@@ -62,7 +64,7 @@ class PlantApi(KindwiseApi):
 
     def identify(
         self,
-        image: PurePath | str | bytes | BinaryIO | list[str | PurePath | bytes | BinaryIO],
+        image: PurePath | str | bytes | BinaryIO | Image.Image | list[str | PurePath | bytes | BinaryIO | Image.Image],
         details: str | list[str] = None,
         disease_details: str | list[str] = None,
         language: str | list[str] = None,
@@ -136,7 +138,7 @@ class PlantApi(KindwiseApi):
 
     def health_assessment(
         self,
-        image: PurePath | str | bytes | BinaryIO | list[str | PurePath | bytes | BinaryIO],
+        image: PurePath | str | bytes | BinaryIO | Image.Image | list[str | PurePath | bytes | BinaryIO | Image.Image],
         details: str | list[str] = None,
         language: str | list[str] = None,
         asynchronous: bool = False,

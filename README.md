@@ -110,6 +110,8 @@ api = PlantApi(api_key='your_api_key')
 #
 # as input image is accepted path to an image(str / pathlib.Path), base64 encoded stream(bytes/string), stream(bytes/string),
 # or file object(supports read,seek and mode methods)
+# or PIL.Image.Image object
+# or list of images
 images = ['path/to/image1.jpg', 'path/to/image2.jpg', 'path/to/image3.jpg', 'path/to/image4.jpg', 'path/to/image5.jpg']
 # details included in identification
 details = ['common_names', 'taxonomy', 'image']

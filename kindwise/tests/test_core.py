@@ -145,7 +145,7 @@ def image_base64(image_path):
 
 
 def test_identify(
-    api, api_key, identification, identification_dict, image_path, image_base64, requests_mock, request_matcher
+        api, api_key, identification, identification_dict, image_path, image_base64, requests_mock, request_matcher
 ):
     # check result
     request_matcher.check_identify_request(expected_result=identification, max_image_size=None)
@@ -212,6 +212,12 @@ def test_identify(
     request_matcher.check_identify_request(
         expected_payload=[('images', [pure_path_base64])], image=pure_path
     )
+    # accept image as a PIL image
+    # with open(image_path, 'rb') as f:
+    img = Image.open(image_path)
+    request_matcher.check_identify_request(
+        image=img, max_image_size=None
+    )
     # check if image is resized
     with open(image_path, 'rb') as f:
         img = Image.open(f)
@@ -250,7 +256,7 @@ def test_identify(
 
 
 def test_get_identification(
-    api, api_key, identification, identification_dict, image_path, requests_mock, request_matcher
+        api, api_key, identification, identification_dict, image_path, requests_mock, request_matcher
 ):
     requests_mock.get(
         f'{api.identification_url}/{identification.access_token}',

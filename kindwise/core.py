@@ -37,7 +37,7 @@ class KindwiseApi(abc.ABC):
         return requests.request(method, url, json=data, headers=headers)
 
     @staticmethod
-    def _encode_image(image: PurePath | str | bytes | BinaryIO, max_image_size: int | None) -> str:
+    def _encode_image(image: PurePath | str | bytes | BinaryIO | Image.Image, max_image_size: int | None) -> str:
         if isinstance(image, PurePath):  # Path
             with open(image, 'rb') as f:
                 buffer = io.BytesIO(f.read())
@@ -46,6 +46,10 @@ class KindwiseApi(abc.ABC):
                 raise ValueError(f'Invalid file mode {image.mode=}, expected "rb"(binary mode)')
             image.seek(0)
             buffer = io.BytesIO(image.read())
+        elif isinstance(image, Image.Image):
+            buffer = io.BytesIO()
+            image.save(buffer, format='JPEG')
+            # buffer.seek(0)
         else:  # str | bytes:
 
             def is_base64():
@@ -84,7 +88,7 @@ class KindwiseApi(abc.ABC):
 
     def _build_payload(
         self,
-        image: PurePath | str | list[str | PurePath],
+        image: PurePath | str | bytes | BinaryIO | Image.Image | list[str | PurePath | bytes | BinaryIO | Image.Image],
         similar_images: bool = True,
         latitude_longitude: tuple[float, float] = None,
         custom_id: int | None = None,
@@ -120,7 +124,7 @@ class KindwiseApi(abc.ABC):
 
     def identify(
         self,
-        image: PurePath | str | bytes | BinaryIO | list[str | PurePath | bytes | BinaryIO],
+        image: PurePath | str | bytes | BinaryIO | Image.Image | list[str | PurePath | bytes | BinaryIO | Image.Image],
         details: str | list[str] = None,
         language: str | list[str] = None,
         asynchronous: bool = False,
