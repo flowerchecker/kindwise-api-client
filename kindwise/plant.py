@@ -78,7 +78,7 @@ class PlantApi(KindwiseApi):
         date_time: datetime | str | float | None = None,
         max_image_size: int | None = 1500,
         as_dict: bool = False,
-        extra_get_params: str = None,
+        extra_get_params: str | dict[str, str] = None,
         extra_post_params: str = None,
     ) -> PlantIdentification | RawPlantIdentification | HealthAssessment | dict:
         identification = super().identify(
@@ -113,7 +113,7 @@ class PlantApi(KindwiseApi):
         disease_details: str | list[str] = None,
         language: str | list[str] = None,
         as_dict: bool = False,
-        extra_get_params: str = None,
+        extra_get_params: str | dict[str, str] = None,
     ) -> PlantIdentification | dict:
         identification = super().get_identification(
             token=token,
@@ -151,7 +151,7 @@ class PlantApi(KindwiseApi):
         date_time: datetime | str | float | None = None,
         max_image_size: int | None = 1500,
         as_dict: bool = False,
-        extra_get_params: str = None,
+        extra_get_params: str | dict[str, str] = None,
         extra_post_params: str = None,
     ) -> HealthAssessment | dict:
         query = self._build_query(
@@ -184,7 +184,7 @@ class PlantApi(KindwiseApi):
         language: str | list[str] = None,
         full_disease_list: bool = False,
         as_dict: bool = False,
-        extra_get_params: str = None,
+        extra_get_params: str | dict[str, str] = None,
     ) -> HealthAssessment | dict:
         query = self._build_query(
             details=details, language=language, full_disease_list=full_disease_list, extra_get_params=extra_get_params

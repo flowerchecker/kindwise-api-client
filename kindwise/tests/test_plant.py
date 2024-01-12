@@ -599,6 +599,7 @@ def test_identify(
     request_matcher.check_identify_request(expected_payload=[('test', 'test')], extra_post_params={'test': 'test'})
     # check extra_get_params
     request_matcher.check_identify_request(expected_query='test=test', extra_get_params='?test=test')
+    request_matcher.check_identify_request(expected_query='test=test', extra_get_params={'test': 'test'})
 
 
 def test_get_identification(request_matcher):
@@ -608,6 +609,7 @@ def test_get_identification(request_matcher):
     )
     # check extra_get_params
     request_matcher.check_get_identification_request(expected_query='test=test', extra_get_params='?test=test')
+    request_matcher.check_get_identification_request(expected_query='test=test', extra_get_params={'test': 'test'})
 
 
 @pytest.fixture
@@ -781,6 +783,9 @@ def test_health_assessment(
     request_matcher.check_health_assessment_request(
         health_assessment_dict, expected_query='test=test', extra_get_params='?test=test'
     )
+    request_matcher.check_health_assessment_request(
+        health_assessment_dict, expected_query='test=test', extra_get_params={'test': 'test'}
+    )
 
 
 def test_get_health_assessment(api, api_key, health_assessment_dict, health_assessment, requests_mock, request_matcher):
@@ -793,6 +798,9 @@ def test_get_health_assessment(api, api_key, health_assessment_dict, health_asse
     # check extra_get_params
     request_matcher.check_get_health_assessment_request(
         health_assessment_dict, expected_query='test=test', extra_get_params='?test=test'
+    )
+    request_matcher.check_get_health_assessment_request(
+        health_assessment_dict, expected_query='test=test', extra_get_params={'test': 'test'}
     )
 
 

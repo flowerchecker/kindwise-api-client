@@ -134,7 +134,7 @@ class KindwiseApi(abc.ABC):
         custom_id: int | None = None,
         date_time: datetime | str | float | None = None,
         max_image_size: int | None = 1500,
-        extra_get_params: str = None,
+        extra_get_params: str | dict[str | Any] = None,
         extra_post_params: dict[str, Any] = None,
         **kwargs,
     ) -> Identification | dict:
@@ -163,7 +163,7 @@ class KindwiseApi(abc.ABC):
         details: str | list[str] = None,
         language: str | list[str] = None,
         asynchronous: bool = False,
-        extra_get_params: str = None,
+        extra_get_params: str | dict[str, str] = None,
         **kwargs,
     ):
         if isinstance(details, str):
@@ -175,6 +175,8 @@ class KindwiseApi(abc.ABC):
         if extra_get_params is None:
             extra_get_params = ''
         else:
+            if isinstance(extra_get_params, dict):
+                extra_get_params = '&'.join(f'{k}={v}' for k, v in extra_get_params.items())
             if extra_get_params.startswith('?'):
                 extra_get_params = extra_get_params[1:] + '&'
         async_query = f'async=true&' if asynchronous else ''
@@ -188,7 +190,7 @@ class KindwiseApi(abc.ABC):
         token: str | int,
         details: str | list[str] = None,
         language: str | list[str] = None,
-        extra_get_params: str = None,
+        extra_get_params: str | dict[str, str] = None,
         as_dict: bool = False,
     ) -> Identification | dict:
         query = self._build_query(details=details, language=language, extra_get_params=extra_get_params)

@@ -249,6 +249,8 @@ def test_identify(
     request_matcher.check_identify_request(
         expected_query='details=image&test=test', details=['image'], extra_get_params='test=test&'
     )
+    request_matcher.check_identify_request(expected_query='test=test', extra_get_params={'test': 'test'})
+    request_matcher.check_identify_request(expected_query='', extra_get_params={})
 
 
 def test_get_identification(
@@ -290,6 +292,7 @@ def test_get_identification(
     assert request_record.url == f'{api.identification_url}/{identification.access_token}?details=image,images'
     # check extra_get_params
     request_matcher.check_get_identification_request(expected_query='test=test', extra_get_params='?test=test')
+    request_matcher.check_get_identification_request(expected_query='test=test', extra_get_params={'test': 'test'})
 
 
 def test_delete_identification(api, api_key, identification, requests_mock):
