@@ -38,6 +38,8 @@ class KindwiseApi(abc.ABC):
 
     @staticmethod
     def _encode_image(image: PurePath | str | bytes | BinaryIO | Image.Image, max_image_size: int | None) -> str:
+        if isinstance(image, str) and len(image) <= 250:  # first try str as a path to a file
+            image = Path(image)
         if isinstance(image, PurePath):  # Path
             with open(image, 'rb') as f:
                 buffer = io.BytesIO(f.read())

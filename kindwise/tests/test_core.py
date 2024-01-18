@@ -188,6 +188,12 @@ def test_identify(
         max_image_size=None,
         image=[image_path, image_path],
     )
+    # accept image as a str path to a file
+    request_matcher.check_identify_request(
+        expected_payload=[('images', [image_base64])],
+        max_image_size=None,
+        image=[str(image_path)],
+    )
     # accept image as base64 string
     request_matcher.check_identify_request(
         expected_payload=[('images', [image_base64])], max_image_size=None, image=image_base64
