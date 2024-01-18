@@ -20,19 +20,19 @@ pip install kindwise
 
 ### API key
 
-The API key serves to identify your account and is required to make requests to the API. You can get your API key at
-admin.kindwise.com. You need to register and create a new API key.
+The API key serves to identify your account and is required to make requests to the API. Get API key at
+[admin.kindwise.com](https://admin.kindwise.com).
 
 ## Quick Start
 
-To use Kindwise API, you need to have an active API key. If you already do not have any, see the API key section.
+To use Kindwise API, an active API key is needed. See the section [above](#api-key) on how to get an API key.
 
 ```python
 from kindwise.plant import PlantApi
 from kindwise.models import PlantIdentification, UsageInfo
 
 # initialize plant.id api
-# you do not have to specify api key here, if you have "PLANT_API_KEY" environment variable set.
+# "PLANT_API_KEY" environment variable can be set instead of specifying api_key
 api = PlantApi(api_key='your_api_key')
 
 # get usage information
@@ -40,7 +40,7 @@ usage: UsageInfo = api.usage_info()
 
 # identify plant by image
 latitude_longitude = (49.20340, 16.57318)
-# you must pass the image as a path
+# pass the image as a path
 image_path = 'path/to/plant_image.jpg'
 # make identification
 identification: PlantIdentification = api.identify(image_path, latitude_longitude=latitude_longitude)
@@ -112,39 +112,50 @@ api = PlantApi(api_key='your_api_key')
 # or PIL.Image.Image object
 # or list of images
 images = ['path/to/image1.jpg', 'path/to/image2.jpg', 'path/to/image3.jpg', 'path/to/image4.jpg', 'path/to/image5.jpg']
+
 # details included in identification
 details = ['common_names', 'taxonomy', 'image']
+
 # disease details included in health identification(only used if health=True)
 # disease_details parameter is only available for plant.id
 disease_details = ['local_name', 'description', 'treatment', 'cause']
-# you can specify up to 3 languages
+
+# specify up to 3 languages
 language = ['en', 'cs']
+
 # default for similar_images is True
 similar_images = True
+
 # where was an image taken
 latitude_longitude = (49.20340, 16.57318)
-# you can include health assessment in your identification by specifying health='all',
-# you can also use health='only' to get HealthAssessment(health assessment only)
+
+# include health assessment in your identification by specifying health='all',
+# also use health='only' to get HealthAssessment(health assessment only)
 # health assessment is only available for plant.id
 health = 'all'
+
 # custom id is used to identify identification in your system, but can be replaced with access_token
 custom_id = 123
+
 # when was an image taken, datetime can be specified as a datetime object, timestamp, or string in ISO format
 date_time = datetime.now()
+
 # default image size is 1500px, can be turned off by setting max_image_size to None
 # be aware that our API has limit 25Mpx(e.g. 5000px x 5000px)
 max_image_size = 1500
-# you can specify into what depth should be the plant classified
-# you can choose from ClassificationLevel.SPECIES, ClassificationLevel.GENUS, ClassificationLevel.ALL
+
+# specify into what depth should be the plant classified
+# choose from ClassificationLevel.SPECIES, ClassificationLevel.GENUS, ClassificationLevel.ALL
 # default is ClassificationLevel.SPECIES
 classification_level = ClassificationLevel.SPECIES
-# in case you want to merge results for different taxon levels yourself, you can set classification_raw=True
+# in case of need to merge results for different taxon levels yourself, set classification_raw=True
 # be aware that the result will be in type kindwise.models.RawPlantIdentification
 classification_raw = False
 # if our api will be ahead of this sdk and you do not want to wait for update,
-# you can specify extra_get_params or extra_post_params
+# specify extra_get_params or extra_post_params
 extra_get_params = None  # default
 extra_post_params = None  # default
+
 identification: PlantIdentification = api.identify(
     images,
     details=details,
@@ -186,7 +197,7 @@ api = PlantApi(api_key='your_api_key')
 
 image = 'path/to/image.jpg'
 identification: PlantIdentification = api.identify(image, asynchronous=True)
-# now you can do something else
+# now do something else
 # ...
 # and later get identification by access_token or custom_id
 identification: PlantIdentification = api.get_identification(identification.access_token, details=['common_names'])
@@ -274,27 +285,37 @@ from kindwise import PlantApi, HealthAssessment
 api = PlantApi(api_key='your_api_key')
 # the same as in identify method
 images = ['path/to/image1.jpg', 'path/to/image2.jpg', 'path/to/image3.jpg', 'path/to/image4.jpg', 'path/to/image5.jpg']
+
 # details included in identification
 details = ['local_name', 'description', 'treatment', 'cause', 'image']
-# you can specify up to 3 languages
+
+# specify up to 3 languages
 language = ['en', 'cs']
+
 # default for similar_images is True
 similar_images = True
+
 # where was an image taken
 latitude_longitude = (49.20340, 16.57318)
+
 # custom id is used to identify identification in your system, but can be replaced with access_token
 custom_id = 123
+
 # list of suggested diseases also contains general diseases such as "Abiotic", default is False
 full_disease_list = True
+
 # when was an image taken, datetime can be specified as a datetime object, timestamp, or string in ISO format
 date_time = datetime.now()
+
 # default image size is 1500px, can be turned off by setting max_image_size to None
 # be aware that our API has limit 25Mpx(e.g. 5000px x 5000px)
 max_image_size = 1500
+
 # if our api will be ahead of this sdk and you do not want to wait for update,
-# you can specify extra_get_params or extra_post_params
+# specify extra_get_params or extra_post_params
 extra_get_params = None  # default
 extra_post_params = None  # default
+
 identification: HealthAssessment = api.health_assessment(
     images,
     details=details,
@@ -322,11 +343,15 @@ from kindwise import PlantApi, HealthAssessment
 api = PlantApi(api_key='your_api_key')
 
 access_token = 'identification_access_token'
+
 # details included in identification can be different from those used in identification creation
 details = ['classification', 'local_name']
+
 # language can also differ from what is used in identification creation
 language = 'de'
+
 full_disease_list = False
+
 identification: HealthAssessment = api.get_health_assessment(
     access_token,
     details=details,
