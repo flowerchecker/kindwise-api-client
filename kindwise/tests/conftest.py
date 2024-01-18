@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from kindwise.models import UsageInfo
+from kindwise.models import UsageInfo, SearchResult
 
 TEST_DIR = Path(__file__).resolve().parent
 IMAGE_DIR = TEST_DIR / 'resources' / 'images'
@@ -55,6 +55,7 @@ def run_test_requests_to_server(api, system_name, image_path, identification_typ
         print(identification)
         assert isinstance(identification, identification_type)
         assert 'image' in identification.result.classification.suggestions[0].details
+        entity_name = identification.result.classification.suggestions[0].name
         assert identification.result.classification.suggestions[0].details['language'] == 'cz'
         assert identification.feedback.comment == 'correct'
         assert identification.feedback.rating == 5
@@ -65,6 +66,21 @@ def run_test_requests_to_server(api, system_name, image_path, identification_typ
 
         with pytest.raises(ValueError):
             api.get_identification(identification.access_token)
+
+        if system_name in []:  # todo there should be deployed all systems which supports KB api
+            search_results: SearchResult = api.search(entity_name, limit=1)
+            print(f'Search results for {entity_name=}, limit=1 {system_name=}:')
+            print(search_results)
+            assert len(search_results.entities) == search_results.limit == 1
+            assert search_results.entities[0].matched_in.lower() == entity_name.lower()
+            kb_entity_detail = api.get_kb_entity(search_results.entities[0].access_token, 'image')
+            print(f'KB entity detail for {entity_name=}:')
+            print(kb_entity_detail)
+            assert kb_entity_detail['name'].lower() == entity_name.lower()
+            assert kb_entity_detail['language'] == 'en'
+            assert 'image' in kb_entity_detail['details']
+        else:
+            print(f'Skipped KB api check ')
 
 
 class RequestMatcher:

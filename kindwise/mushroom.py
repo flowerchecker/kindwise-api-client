@@ -26,3 +26,7 @@ class MushroomApi(KindwiseApi):
     @property
     def views_path(self) -> Path:
         return settings.APP_DIR / 'resources' / f'views.mushroom.json'
+
+    @property
+    def kb_api_url(self):
+        return f'{self.host}/api/v1/kb/mushroom'

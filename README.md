@@ -68,14 +68,16 @@ Each system has its class, which is used to make requests to the API. Each class
 |-----------------------------------------------------------|-------------------------------------------------------------------------------------|--------------------|--------------------|--------------------|--------------------|
 | [`identify`](#identify)                                   | create new identification                                                           | `Identification`   | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 | [`get_identification`](#get_identification)               | get identification by token                                                         | `Identification`   | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| [`delete_identification`](#delete_identification)         | delete identification by token                                                      | boolean            | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| [`delete_identification`](#delete_identification)         | delete identification by token                                                      | `boolean`          | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 | [`usage_info`](#usage_info)                               | get api key usage information                                                       | `UsageInfo`        | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| [`feedback`](#feedback)                                   | send feedback for identification                                                    | boolean            | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| [`feedback`](#feedback)                                   | send feedback for identification                                                    | `boolean`          | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 | [`health_assessment`](#health_assessment)                 | create health assessment identification                                             | `HealthAssessment` | :white_check_mark: | :x:                | :x:                |
 | [`get_health_assessment`](#get_health_assessment)         | get health assessment identification                                                | `HealthAssessment` | :white_check_mark: | :x:                | :x:                |
-| [`delete_health_assessment`](#delete_health_assessment)   | delete health assessment                                                            | boolean            | :white_check_mark: | :x:                | :x:                |
-| [`available_details`](#available_details)                 | details which can be used to specify additional information for `identify`          | dict               | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| [`available_disease_details`](#available_disease_details) | details which can be used to specify additional information for `health_assessment` | dict               | :white_check_mark: | :x:                | :x:                |
+| [`delete_health_assessment`](#delete_health_assessment)   | delete health assessment                                                            | `boolean`          | :white_check_mark: | :x:                | :x:                |
+| [`available_details`](#available_details)                 | details which can be used to specify additional information for `identify`          | `dict`             | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| [`available_disease_details`](#available_disease_details) | details which can be used to specify additional information for `health_assessment` | `dict`             | :white_check_mark: | :x:                | :x:                |
+| [`search`](#search)                                       | search for entity by query param in our database                                    | `SearchRecord`     | :x:                | :x:                | :x:                |
+| [`get_kb_detail`](#get_kb_detail)                         | returns information about entity                                                    | `dict`             | :x:                | :x:                | :x:                |
 
 Datetime objects are created by method `datetime.fromtimestamp(timestamp)`. This means that datetime objects are in
 local timezone.
@@ -346,4 +348,32 @@ api = PlantApi(api_key='your_api_key')
 
 custom_id = 123  # also works with access_token or HealthAssessment object
 api.delete_health_assessment(custom_id)
+```
+
+#### search
+
+Search for entity(e.g. `Taraxacum`) by query param in our database. You can specify in what language you want to search.
+
+```python
+from kindwise import PlantApi, SearchResult
+
+api = PlantApi(api_key='your_api_key')
+search_result: SearchResult = api.search('Taraxacum', language='en')
+```
+
+#### get_kb_detail
+
+Returns information about entity(e.g. `Taraxacum`) in our database. You can specify in what language you want the
+result.
+
+```python
+from kindwise import PlantApi, SearchResult
+
+api = PlantApi(api_key='your_api_key')
+search_result: SearchResult = api.search('Taraxacum', language='en', limit=1)
+
+# details can also be specified as a list of strings
+details = 'common_names,taxonomy'
+
+entity_details = api.get_kb_detail(search_result.entities[0].access_token, details, language='de')
 ```

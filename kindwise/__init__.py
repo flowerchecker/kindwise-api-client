@@ -4,6 +4,7 @@ from kindwise.models import (
     ClassificationLevel,
     RawPlantIdentification,
     UsageInfo,
+    SearchResult,
 )
 from kindwise.plant import PlantApi
 from kindwise.insect import InsectApi

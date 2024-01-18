@@ -24,5 +24,9 @@ class InsectApi(KindwiseApi):
         return f'{self.host}/api/v1/usage_info'
 
     @property
+    def kb_api_url(self):
+        return f'{self.host}/api/v1/kb/insect'
+
+    @property
     def views_path(self) -> Path:
         return settings.APP_DIR / 'resources' / f'views.insect.json'

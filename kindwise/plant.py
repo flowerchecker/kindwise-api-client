@@ -7,7 +7,14 @@ from PIL import Image
 
 from kindwise import settings
 from kindwise.core import KindwiseApi
-from kindwise.models import PlantIdentification, HealthAssessment, ClassificationLevel, RawPlantIdentification
+from kindwise.models import (
+    PlantIdentification,
+    HealthAssessment,
+    ClassificationLevel,
+    RawPlantIdentification,
+    PlantKBType,
+    SearchResult,
+)
 
 
 class PlantApi(KindwiseApi):
@@ -28,6 +35,10 @@ class PlantApi(KindwiseApi):
     @property
     def usage_info_url(self):
         return f'{self.host}/api/v3/usage_info'
+
+    @property
+    def kb_api_url(self):
+        return f'{self.host}/api/v1/kb'
 
     @property
     def health_assessment_url(self):
@@ -207,3 +218,28 @@ class PlantApi(KindwiseApi):
     def available_disease_details(cls) -> list[dict[str, any]]:
         with open(settings.APP_DIR / 'resources' / f'views.plant.disease.json') as f:
             return json.load(f)
+
+    def search(
+        self,
+        query: str,
+        limit: int = None,
+        language: str = None,
+        as_dict=False,
+        kb_type: PlantKBType | str = PlantKBType.PLANTS,
+    ) -> SearchResult | dict:
+        if not isinstance(kb_type, PlantKBType):
+            kb_type = PlantKBType(kb_type)
+        return self._search(
+            query, f'{self.kb_api_url}/{kb_type.value}', limit=limit, language=language, as_dict=as_dict
+        )
+
+    def get_kb_detail(
+        self,
+        access_token: str,
+        details: str | list[str],
+        language: str = None,
+        kb_type: PlantKBType | str = PlantKBType.PLANTS,
+    ) -> dict:
+        if not isinstance(kb_type, PlantKBType):
+            kb_type = PlantKBType(kb_type)
+        return self._get_kb_detail(access_token, details, f'{self.kb_api_url}/{kb_type.value}', language=language)
