@@ -131,7 +131,7 @@ class Identification:
             model_version=data['model_version'],
             custom_id=data['custom_id'],
             input=Input.from_dict(data['input']),
-            result=None if 'result' not in data else Result.from_dict(data['result']),
+            result=None if 'result' not in data else cls.get_result_class().from_dict(data['result']),
             status=IdentificationStatus(data['status']),
             sla_compliant_client=data['sla_compliant_client'],
             sla_compliant_system=data['sla_compliant_system'],
@@ -139,6 +139,10 @@ class Identification:
             completed=None if data['completed'] is None else datetime.fromtimestamp(data['completed']),
             feedback=Feedback.from_dict(data['feedback']) if 'feedback' in data else None,
         )
+
+    @classmethod
+    def get_result_class(cls):
+        return Result
 
 
 @dataclass

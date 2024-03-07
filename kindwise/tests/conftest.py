@@ -9,6 +9,8 @@ import pytest
 
 from kindwise.models import UsageInfo
 
+SYSTEMS = ['insect', 'mushroom', 'plant', 'crop']
+
 TEST_DIR = Path(__file__).resolve().parent
 IMAGE_DIR = TEST_DIR / 'resources' / 'images'
 MOCK_REQUESTS = True
@@ -21,7 +23,7 @@ def api_key():
 
 @contextmanager
 def staging_api(api, system):
-    assert system.lower() in ['insect', 'mushroom', 'plant']
+    assert system.lower() in SYSTEMS
     staging_host = os.getenv(f'{system.upper()}_STAGING_HOST')
     assert staging_host is not None, f'{system.capitalize()}_STAGING_HOST is not set in .env file'
     api_key = os.getenv(f'{system.upper()}_STAGING_API_KEY')
@@ -31,8 +33,8 @@ def staging_api(api, system):
             yield api
 
 
-def run_test_requests_to_server(api, system_name, image_path, identification_type):
-    assert system_name.lower() in ['insect', 'mushroom', 'plant']
+def run_test_requests_to_server(api, system_name, image_path, identification_type, model_name='classification'):
+    assert system_name.lower() in SYSTEMS
     with staging_api(api, system_name) as api:
         usage_info = api.usage_info()
         print('Usage info:')
@@ -54,8 +56,8 @@ def run_test_requests_to_server(api, system_name, image_path, identification_typ
         print('Identification with image details, custom id and cz language:')
         print(identification)
         assert isinstance(identification, identification_type)
-        assert 'image' in identification.result.classification.suggestions[0].details
-        assert identification.result.classification.suggestions[0].details['language'] == 'cz'
+        assert 'image' in getattr(identification.result, model_name).suggestions[0].details
+        assert getattr(identification.result, model_name).suggestions[0].details['language'] == 'cz'
         assert identification.feedback.comment == 'correct'
         assert identification.feedback.rating == 5
         assert identification.custom_id == custom_id

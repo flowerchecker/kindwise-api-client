@@ -13,6 +13,8 @@ from kindwise.models import Identification, UsageInfo
 
 
 class KindwiseApi(abc.ABC):
+    identification_class = Identification
+
     def __init__(self, api_key: str):
         self.api_key = api_key
 
@@ -158,7 +160,7 @@ class KindwiseApi(abc.ABC):
         if not response.ok:
             raise ValueError(f'Error while creating an identification: {response.status_code=} {response.text=}')
         data = response.json()
-        return data if as_dict else Identification.from_dict(response.json())
+        return data if as_dict else self.identification_class.from_dict(response.json())
 
     def _build_query(
         self,
@@ -201,7 +203,7 @@ class KindwiseApi(abc.ABC):
         if not response.ok:
             raise ValueError(f'Error while getting an identification: {response.status_code=} {response.text=}')
         data = response.json()
-        return data if as_dict else Identification.from_dict(response.json())
+        return data if as_dict else self.identification_class.from_dict(response.json())
 
     def delete_identification(self, identification: Identification | str | int) -> bool:
         token = identification.access_token if isinstance(identification, Identification) else identification
