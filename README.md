@@ -6,9 +6,10 @@ modules, each corresponding to a specific domain ([plant](https://web.plant.id/p
 [insect](https://www.kindwise.com/insect-id), [mushroom](https://www.kindwise.com/mushroom-id)). You can always use our
 API without our SDK, the documentation can be found on the following links:
 
-- [plant](https://documenter.getpostman.com/view/24599534/2s93z5A4v2)
-- [insect](https://documenter.getpostman.com/view/3802128/2s93sZ5YeU)
-- [mushroom](https://documenter.getpostman.com/view/3802128/2s93kz55EY)
+- [plant.id](https://plant.id/docs)
+- [insect.id](https://insect.kindwise.com/docs)
+- [mushroom.id](https://mushroom.kindwise.com/docs)
+- [crop.health](https://crop.kindwise.com/docs)
 
 ## Setup
 
@@ -59,8 +60,9 @@ api.delete_identification(identification)  # also works with identification.acce
 SDK supports the following Kindwise systems:
 
 - [plant.id](https://web.plant.id/plant-identification-api/)
-- [insect.id](https://www.kindwise.com/insect-id)
-- [mushroom.id](https://www.kindwise.com/mushroom-id)
+- [insect.id](https://insect.kindwise.com)
+- [mushroom.id](https://mushroom.kindwise.com)
+- [crop.health](https://crop.kindwise.com)
 
 Each system has its class, which is used to make requests to the API. Each class has the following methods:
 

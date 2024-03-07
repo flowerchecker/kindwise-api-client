@@ -1,0 +1,72 @@
+[
+  {
+    "name": "common_names",
+    "type": "list of strings",
+    "localized": true,
+    "license": false,
+    "description": "list of more non-scientific names"
+  },
+  {
+    "name": "type",
+    "type": "string",
+    "localized": false,
+    "license": false,
+    "description": "high-level category"
+  },
+  {
+    "name": "taxonomy",
+    "type": "dict",
+    "localized": false,
+    "license": false,
+    "description": "scientific taxonomy"
+  },
+  {
+    "name": "gbif_id",
+    "type": "int",
+    "localized": false,
+    "license": false,
+    "description": "id in GBIF database"
+  },
+  {
+    "name": "eppo_code",
+    "type": "int",
+    "localized": false,
+    "license": false,
+    "description": "id in EPPO database"
+  },
+  {
+    "name": "eppo_regulation_status",
+    "type": "dict",
+    "localized": false,
+    "license": false,
+    "description": "quarantine status from EPPO database"
+  },
+  {
+    "name": "wiki_url",
+    "type": "string",
+    "localized": true,
+    "license": false,
+    "description": "link to Wikipedia page; if localized page not available, an English one is provided"
+  },
+  {
+    "name": "wiki_description",
+    "type": "string",
+    "localized": true,
+    "license": true,
+    "description": "short description from Wikipedia"
+  },
+  {
+    "name": "image",
+    "type": "string",
+    "localized": false,
+    "license": true,
+    "description": "url of representative image"
+  },
+  {
+    "name": "images",
+    "type": "list",
+    "localized": false,
+    "license": true,
+    "description": "list of more urls of representative images"
+  }
+]

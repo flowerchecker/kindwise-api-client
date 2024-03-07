@@ -1,0 +1,23 @@
+[
+  {
+    "name": "gbif_id",
+    "type": "int",
+    "localized": false,
+    "license": false,
+    "description": "id in GBIF database"
+  },
+  {
+    "name": "image",
+    "type": "string",
+    "localized": false,
+    "license": true,
+    "description": "url of representative image"
+  },
+  {
+    "name": "images",
+    "type": "list",
+    "localized": false,
+    "license": true,
+    "description": "list of more urls of representative images"
+  }
+]
