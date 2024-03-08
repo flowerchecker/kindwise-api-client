@@ -3,23 +3,23 @@ from pathlib import Path
 
 from kindwise import settings
 from kindwise.core import KindwiseApi
-from kindwise.models import Identification, ResultEvaluation, Classification
+from kindwise.models import Identification, ResultEvaluation, ClassificationWithScientificName
 
 
 @dataclass
 class CropResult:
     is_plant: ResultEvaluation
     is_healthy: ResultEvaluation | None
-    crop: Classification
-    disease: Classification | None
+    crop: ClassificationWithScientificName
+    disease: ClassificationWithScientificName | None
 
     @classmethod
     def from_dict(cls, data: dict):
         return cls(
             is_plant=ResultEvaluation.from_dict(data['is_plant']),
             is_healthy=ResultEvaluation.from_dict(data['is_healthy']) if 'is_healthy' in data else None,
-            crop=Classification.from_dict(data['crop']),
-            disease=Classification.from_dict(data['disease']) if 'disease' in data else None,
+            crop=ClassificationWithScientificName.from_dict(data['crop']),
+            disease=ClassificationWithScientificName.from_dict(data['disease']) if 'disease' in data else None,
         )
 
 
@@ -44,7 +44,7 @@ class CropHealthApi(KindwiseApi):
             )
         super().__init__(api_key)
 
-    def identify(self, *args, as_dict: bool = False, **kwargs) -> Identification | dict:
+    def identify(self, *args, as_dict: bool = False, **kwargs) -> CropIdentification | dict:
         identification = super().identify(*args, as_dict=True, **kwargs)
         if as_dict:
             return identification

@@ -48,12 +48,41 @@ class Suggestion:
 
 
 @dataclass
+class SuggestionWithScientificName(Suggestion):
+    scientific_name: str | None = None
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'SuggestionWithScientificName':
+        return cls(
+            id=data['id'],
+            name=data['name'],
+            probability=data['probability'],
+            similar_images=None
+            if data.get('similar_images') is None
+            else [SimilarImage.from_dict(similar_image) for similar_image in data['similar_images']],
+            details=data.get('details'),
+            scientific_name=data.get('scientific_name'),
+        )
+
+
+@dataclass
 class Classification:
     suggestions: list[Suggestion]
 
     @classmethod
     def from_dict(cls, data: dict) -> 'Classification':
         return cls(suggestions=[Suggestion.from_dict(suggestion) for suggestion in data['suggestions']])
+
+
+@dataclass
+class ClassificationWithScientificName(Classification):
+    suggestions: list[Suggestion]
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'ClassificationWithScientificName':
+        return cls(
+            suggestions=[SuggestionWithScientificName.from_dict(suggestion) for suggestion in data['suggestions']]
+        )
 
 
 @dataclass
