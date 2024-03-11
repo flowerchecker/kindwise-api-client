@@ -42,12 +42,6 @@ class CropHealthApi(KindwiseApi):
             )
         super().__init__(api_key)
 
-    def identify(self, *args, as_dict: bool = False, **kwargs) -> CropIdentification | dict:
-        identification = super().identify(*args, as_dict=True, **kwargs)
-        if as_dict:
-            return identification
-        return CropIdentification.from_dict(identification)
-
     @property
     def identification_url(self):
         return f'{self.host}/api/v1/identification'
