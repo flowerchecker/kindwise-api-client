@@ -1,10 +1,5 @@
-from kindwise.models import (
-    PlantIdentification,
-    HealthAssessment,
-    ClassificationLevel,
-    RawPlantIdentification,
-    UsageInfo,
-)
+from kindwise.models import Result, Identification, Input, UsageInfo
+from kindwise.plant import PlantIdentification, HealthAssessment, RawPlantIdentification
 from kindwise.plant import PlantApi
 from kindwise.insect import InsectApi
 from kindwise.mushroom import MushroomApi

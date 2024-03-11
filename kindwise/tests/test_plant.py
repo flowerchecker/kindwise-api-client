@@ -9,13 +9,15 @@ from kindwise.models import (
     Classification,
     Suggestion,
     SimilarImage,
+    IdentificationStatus,
+    ClassificationLevel,
+)
+from kindwise.plant import (
     PlantIdentification,
     PlantResult,
     ResultEvaluation,
     HealthAssessment,
     HealthAssessmentResult,
-    IdentificationStatus,
-    ClassificationLevel,
     RawPlantIdentification,
     RawPlantResult,
     RawClassification,
