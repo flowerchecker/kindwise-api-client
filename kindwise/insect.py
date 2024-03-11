@@ -2,9 +2,10 @@ from pathlib import Path
 
 from kindwise import settings
 from kindwise.core import KindwiseApi
+from kindwise.models import Identification
 
 
-class InsectApi(KindwiseApi):
+class InsectApi(KindwiseApi[Identification]):
     host = 'https://insect.kindwise.com'
 
     def __init__(self, api_key: str = None):

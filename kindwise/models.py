@@ -76,7 +76,7 @@ class Classification:
 
 @dataclass
 class ClassificationWithScientificName(Classification):
-    suggestions: list[Suggestion]
+    suggestions: list[SuggestionWithScientificName]
 
     @classmethod
     def from_dict(cls, data: dict) -> 'ClassificationWithScientificName':

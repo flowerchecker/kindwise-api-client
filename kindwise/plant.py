@@ -10,7 +10,7 @@ from kindwise.core import KindwiseApi
 from kindwise.models import PlantIdentification, HealthAssessment, ClassificationLevel, RawPlantIdentification
 
 
-class PlantApi(KindwiseApi):
+class PlantApi(KindwiseApi[PlantIdentification]):
     host = 'https://plant.id'
 
     def __init__(self, api_key: str = None):

@@ -4,15 +4,17 @@ import io
 import json
 from datetime import datetime
 from pathlib import Path, PurePath
-from typing import BinaryIO, Any
+from typing import BinaryIO, Any, Generic, TypeVar
 
 import requests
 from PIL import Image
 
 from kindwise.models import Identification, UsageInfo
 
+IdentificationType = TypeVar('IdentificationType')
 
-class KindwiseApi(abc.ABC):
+
+class KindwiseApi(abc.ABC, Generic[IdentificationType]):
     identification_class = Identification
 
     def __init__(self, api_key: str):
@@ -141,7 +143,7 @@ class KindwiseApi(abc.ABC):
         extra_get_params: str | dict[str | Any] = None,
         extra_post_params: dict[str, Any] = None,
         **kwargs,
-    ) -> Identification | dict:
+    ) -> IdentificationType | dict:
         payload = self._build_payload(
             image,
             similar_images=similar_images,
@@ -196,7 +198,7 @@ class KindwiseApi(abc.ABC):
         language: str | list[str] = None,
         extra_get_params: str | dict[str, str] = None,
         as_dict: bool = False,
-    ) -> Identification | dict:
+    ) -> IdentificationType | dict:
         query = self._build_query(details=details, language=language, extra_get_params=extra_get_params)
         url = f'{self.identification_url}/{token}{query}'
         response = self._make_api_call(url, 'GET')
@@ -205,7 +207,7 @@ class KindwiseApi(abc.ABC):
         data = response.json()
         return data if as_dict else self.identification_class.from_dict(response.json())
 
-    def delete_identification(self, identification: Identification | str | int) -> bool:
+    def delete_identification(self, identification: IdentificationType | str | int) -> bool:
         token = identification.access_token if isinstance(identification, Identification) else identification
         url = f'{self.identification_url}/{token}'
         response = self._make_api_call(url, 'DELETE')
@@ -221,7 +223,7 @@ class KindwiseApi(abc.ABC):
         return data if as_dict else UsageInfo.from_dict(response.json())
 
     def feedback(
-        self, identification: Identification | str | int, comment: str | None = None, rating: int | None = None
+        self, identification: IdentificationType | str | int, comment: str | None = None, rating: int | None = None
     ) -> bool:
         token = identification.access_token if isinstance(identification, Identification) else identification
         if comment is None and rating is None:

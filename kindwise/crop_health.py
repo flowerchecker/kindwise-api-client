@@ -30,7 +30,7 @@ class CropIdentification(Identification):
         return CropResult
 
 
-class CropHealthApi(KindwiseApi):
+class CropHealthApi(KindwiseApi[CropIdentification]):
     host = 'https://crop.kindwise.com'
     identification_class = CropIdentification
 

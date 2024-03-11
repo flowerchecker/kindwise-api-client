@@ -2,9 +2,10 @@ from pathlib import Path
 
 from kindwise import settings
 from kindwise.core import KindwiseApi
+from kindwise.models import Identification
 
 
-class MushroomApi(KindwiseApi):
+class MushroomApi(KindwiseApi[Identification]):
     host = 'https://mushroom.kindwise.com'
 
     def __init__(self, api_key: str = None):
