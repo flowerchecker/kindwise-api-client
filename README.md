@@ -66,18 +66,18 @@ SDK supports the following Kindwise systems:
 
 Each system has its class, which is used to make requests to the API. Each class has the following methods:
 
-| method                                                    | description                                                                         | return type        | plant              | insect             | mushroom           |
-|-----------------------------------------------------------|-------------------------------------------------------------------------------------|--------------------|--------------------|--------------------|--------------------|
-| [`identify`](#identify)                                   | create new identification                                                           | `Identification`   | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| [`get_identification`](#get_identification)               | get identification by token                                                         | `Identification`   | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| [`delete_identification`](#delete_identification)         | delete identification by token                                                      | boolean            | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| [`usage_info`](#usage_info)                               | get api key usage information                                                       | `UsageInfo`        | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| [`feedback`](#feedback)                                   | send feedback for identification                                                    | boolean            | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| [`health_assessment`](#health_assessment)                 | create health assessment identification                                             | `HealthAssessment` | :white_check_mark: | :x:                | :x:                |
-| [`get_health_assessment`](#get_health_assessment)         | get health assessment identification                                                | `HealthAssessment` | :white_check_mark: | :x:                | :x:                |
-| [`delete_health_assessment`](#delete_health_assessment)   | delete health assessment                                                            | boolean            | :white_check_mark: | :x:                | :x:                |
-| [`available_details`](#available_details)                 | details which can be used to specify additional information for `identify`          | dict               | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| [`available_disease_details`](#available_disease_details) | details which can be used to specify additional information for `health_assessment` | dict               | :white_check_mark: | :x:                | :x:                |
+| method                                                    | description                                                                         | return type        | plant.id           | insect.id          | mushroom.id        | crop.health        | 
+|-----------------------------------------------------------|-------------------------------------------------------------------------------------|--------------------|--------------------|--------------------|--------------------|--------------------| 
+| [`identify`](#identify)                                   | create new identification                                                           | `Identification`   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | 
+| [`get_identification`](#get_identification)               | get identification by token                                                         | `Identification`   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | 
+| [`delete_identification`](#delete_identification)         | delete identification by token                                                      | boolean            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | 
+| [`usage_info`](#usage_info)                               | get api key usage information                                                       | `UsageInfo`        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | 
+| [`feedback`](#feedback)                                   | send feedback for identification                                                    | boolean            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | 
+| [`health_assessment`](#health_assessment)                 | create health assessment identification                                             | `HealthAssessment` | :white_check_mark: | :x:                | :x:                | :x:                | 
+| [`get_health_assessment`](#get_health_assessment)         | get health assessment identification                                                | `HealthAssessment` | :white_check_mark: | :x:                | :x:                | :x:                | 
+| [`delete_health_assessment`](#delete_health_assessment)   | delete health assessment                                                            | boolean            | :white_check_mark: | :x:                | :x:                | :x:                | 
+| [`available_details`](#available_details)                 | details which can be used to specify additional information for `identify`          | dict               | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | 
+| [`available_disease_details`](#available_disease_details) | details which can be used to specify additional information for `health_assessment` | dict               | :white_check_mark: | :x:                | :x:                | :x:                | 
 
 Datetime objects are created by method `datetime.fromtimestamp(timestamp)`. This means that datetime objects are in
 local timezone.
@@ -176,15 +176,15 @@ identification: PlantIdentification = api.identify(
 )
 
 # identification created from stream
-with open('path/to/image.jpg', 'rb') as image:
+with open('path/to/image.jpg', 'rb') as image :
     identification_from_stream: PlantIdentification = api.identify(image.read())
 
 # identification created from file object
-with open('path/to/image.jpg', 'rb') as image:
+with open('path/to/image.jpg', 'rb') as image :
     identification_from_file: PlantIdentification = api.identify(image)
 
 # identification created from base64 encoded image
-with open('path/to/image.jpg', 'rb') as image:
+with open('path/to/image.jpg', 'rb') as image :
     image_in_base64 = base64.b64encode(image.read())
     identification_from_base64: PlantIdentification = api.identify(image)
 ```
