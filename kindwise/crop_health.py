@@ -9,7 +9,6 @@ from kindwise.models import Identification, ResultEvaluation, ClassificationWith
 @dataclass
 class CropResult:
     is_plant: ResultEvaluation
-    is_healthy: ResultEvaluation | None
     crop: ClassificationWithScientificName
     disease: ClassificationWithScientificName | None
 
@@ -17,7 +16,6 @@ class CropResult:
     def from_dict(cls, data: dict):
         return cls(
             is_plant=ResultEvaluation.from_dict(data['is_plant']),
-            is_healthy=ResultEvaluation.from_dict(data['is_healthy']) if 'is_healthy' in data else None,
             crop=ClassificationWithScientificName.from_dict(data['crop']),
             disease=ClassificationWithScientificName.from_dict(data['disease']) if 'disease' in data else None,
         )
