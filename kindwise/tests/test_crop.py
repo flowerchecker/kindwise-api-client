@@ -4,7 +4,7 @@ from .. import CropHealthApi
 from ..crop_health import CropIdentification
 
 
-def test_requests_to_insect_server(api_key):
+def test_requests_to_crop_server(api_key):
     run_test_requests_to_server(
         CropHealthApi(api_key=api_key),
         'crop',
