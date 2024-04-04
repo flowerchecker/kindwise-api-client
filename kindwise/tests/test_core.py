@@ -17,6 +17,9 @@ from kindwise.models import (
     IdentificationStatus,
     SearchResult,
     SearchEntity,
+    Conversation,
+    Message,
+    MessageType,
 )
 from .conftest import IMAGE_DIR
 from .. import settings
@@ -516,3 +519,147 @@ def test_get_kb_detail(api, api_key, requests_mock):
     request_record = requests_mock.request_history.pop()
     assert request_record.url == f'{api.kb_api_url}/{TestKBType.TEST_2}/{access_token}?details=url'
     assert response == {'url': 'https://en.wikipedia.org/wiki/Downy_mildew', 'language': 'en', 'name': 'downy mildew'}
+
+
+def test_ask_question(api, api_key, identification, requests_mock):
+    created = datetime(2024, 3, 19, 10, 57, 40, 35562, tzinfo=timezone.utc)
+    requests_mock.post(
+        f'{api.identification_url}/{identification.access_token}/conversation',
+        json={
+            'messages': [
+                {
+                    'content': 'Is it edible?',
+                    'type': 'question',
+                    'created': created.isoformat(),
+                },
+                {
+                    'content': 'Yes',
+                    'type': 'answer',
+                    'created': created.isoformat(),
+                },
+            ],
+            'identification': identification.access_token,
+            'remaining_calls': 19,
+            'model_parameters': {'model': 'gpt-4-vision-preview'},
+            'feedback': {},
+        },
+    )
+    response = api.ask_question(identification.access_token, 'Is it edible?')
+    assert response == Conversation(
+        messages=[
+            Message(content='Is it edible?', type=MessageType.QUESTION, created=created),
+            Message(content='Yes', type=MessageType.ANSWER, created=created),
+        ],
+        identification=identification.access_token,
+        remaining_calls=19,
+        feedback={},
+        model_parameters={'model': 'gpt-4-vision-preview'},
+    )
+    request_record = requests_mock.request_history.pop()
+    assert request_record.method == 'POST'
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}/conversation'
+    assert request_record.headers['Content-Type'] == 'application/json'
+    assert request_record.headers['Api-Key'] == api_key
+    assert request_record.json() == {'question': 'Is it edible?'}
+
+    response = api.ask_question(
+        identification.access_token,
+        'Is it edible?',
+        model='gpt-4-vision-preview',
+        temperature=0.9,
+        app_name='app',
+        prompt='prompt',
+    )
+    request_record = requests_mock.request_history.pop()
+    assert request_record.method == 'POST'
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}/conversation'
+    assert request_record.headers['Content-Type'] == 'application/json'
+    assert request_record.headers['Api-Key'] == api_key
+    assert request_record.json() == {
+        'question': 'Is it edible?',
+        'model': 'gpt-4-vision-preview',
+        'temperature': 0.9,
+        'app_name': 'app',
+        'prompt': 'prompt',
+    }
+    assert response
+
+
+def test_get_conversation(api, api_key, identification, requests_mock):
+    created = datetime(2024, 3, 19, 10, 57, 40, 35562, tzinfo=timezone.utc)
+    requests_mock.get(
+        f'{api.identification_url}/{identification.access_token}/conversation',
+        json={
+            'messages': [
+                {
+                    'content': 'Is it edible?',
+                    'type': 'question',
+                    'created': created.isoformat(),
+                },
+                {
+                    'content': 'Yes',
+                    'type': 'answer',
+                    'created': created.isoformat(),
+                },
+            ],
+            'identification': identification.access_token,
+            'remaining_calls': 19,
+            'model_parameters': {'model': 'gpt-4-vision-preview'},
+            'feedback': {},
+        },
+    )
+    response = api.get_conversation(identification.access_token)
+    assert response == Conversation(
+        messages=[
+            Message(content='Is it edible?', type=MessageType.QUESTION, created=created),
+            Message(content='Yes', type=MessageType.ANSWER, created=created),
+        ],
+        identification=identification.access_token,
+        remaining_calls=19,
+        feedback={},
+        model_parameters={'model': 'gpt-4-vision-preview'},
+    )
+    request_record = requests_mock.request_history.pop()
+    assert request_record.method == 'GET'
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}/conversation'
+    assert request_record.headers['Content-Type'] == 'application/json'
+    assert request_record.headers['Api-Key'] == api_key
+
+
+def test_delete_conversation(api, api_key, identification, requests_mock):
+    requests_mock.delete(
+        f'{api.identification_url}/{identification.access_token}/conversation',
+        json={},
+    )
+    response = api.delete_conversation(identification.access_token)
+    assert response
+    request_record = requests_mock.request_history.pop()
+    assert request_record.method == 'DELETE'
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}/conversation'
+    assert request_record.headers['Content-Type'] == 'application/json'
+    assert request_record.headers['Api-Key'] == api_key
+
+
+def test_conversation_feedback(api, api_key, identification, requests_mock):
+    created = datetime(2024, 3, 19, 10, 57, 40, 35562, tzinfo=timezone.utc)
+    requests_mock.post(
+        f'{api.identification_url}/{identification.access_token}/conversation',
+        json={
+            'messages': [
+                {
+                    'content': 'Is it edible?',
+                    'type': 'question',
+                    'created': created.isoformat(),
+                },
+                {
+                    'content': 'Yes',
+                    'type': 'answer',
+                    'created': created.isoformat(),
+                },
+            ],
+            'identification': identification.access_token,
+            'remaining_calls': 19,
+            'model_parameters': {'model': 'gpt-4-vision-preview'},
+            'feedback': {},
+        },
+    )

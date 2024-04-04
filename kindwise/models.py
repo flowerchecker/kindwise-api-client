@@ -270,3 +270,42 @@ class SearchResult:
             entities_trimmed=data['entities_trimmed'],
             limit=data['limit'],
         )
+
+
+class MessageType(str, enum.Enum):
+    ANSWER = 'answer'
+    QUESTION = 'question'
+
+
+@dataclass
+class Message:
+    content: str
+    type: MessageType
+    created: datetime
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'Message':
+        return cls(
+            content=data['content'],
+            type=MessageType(data['type']),
+            created=datetime.fromisoformat(data['created'].replace('Z', '')),
+        )
+
+
+@dataclass
+class Conversation:
+    messages: list[Message]
+    identification: str
+    remaining_calls: int
+    model_parameters: dict
+    feedback: dict
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'Conversation':
+        return cls(
+            messages=[Message.from_dict(message) for message in data['messages']],
+            identification=data['identification'],
+            remaining_calls=data['remaining_calls'],
+            model_parameters=data['model_parameters'],
+            feedback=data.get('feedback', {}),
+        )

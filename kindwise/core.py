@@ -9,7 +9,7 @@ from typing import BinaryIO, Any, Generic, TypeVar
 import requests
 from PIL import Image
 
-from kindwise.models import Identification, UsageInfo, SearchResult
+from kindwise.models import Identification, UsageInfo, SearchResult, Conversation
 
 IdentificationType = TypeVar('IdentificationType')
 KBType = TypeVar('KBType')
@@ -39,6 +39,12 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
 
     def feedback_url(self, token: str):
         return f'{self.identification_url}/{token}/feedback'
+
+    def conversation_url(self, token: str):
+        return f'{self.identification_url}/{token}/conversation'
+
+    def conversation_feedback_url(self, token: str):
+        return f'{self.identification_url}/{token}/conversation/feedback'
 
     def _make_api_call(self, url, method: str, data: dict | None = None):
         headers = {
@@ -291,3 +297,37 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         if not response.ok:
             raise ValueError(f'Error while getting knowledge base detail: {response.status_code=} {response.text=}')
         return response.json()
+
+    def ask_question(
+        self,
+        identification: IdentificationType | str | int,
+        question: str,
+        model: str = None,
+        app_name: str = None,
+        prompt: str = None,
+        temperature: float = None,
+        as_dict: bool = False,
+    ) -> Conversation:
+        token = identification.access_token if isinstance(identification, Identification) else identification
+        data = {'question': question}
+        for key, value in [('model', model), ('app_name', app_name), ('prompt', prompt), ('temperature', temperature)]:
+            if value is not None:
+                data[key] = value
+        response = self._make_api_call(self.conversation_url(token), 'POST', data)
+        data = response.json()
+        return data if as_dict else Conversation.from_dict(data)
+
+    def get_conversation(self, identification: IdentificationType | str | int) -> Conversation:
+        token = identification.access_token if isinstance(identification, Identification) else identification
+        response = self._make_api_call(self.conversation_url(token), 'GET')
+        return Conversation.from_dict(response.json())
+
+    def delete_conversation(self, identification: IdentificationType | str | int) -> bool:
+        token = identification.access_token if isinstance(identification, Identification) else identification
+        self._make_api_call(self.conversation_url(token), 'DELETE')
+        return True
+
+    def conversation_feedback(self, identification: IdentificationType | str | int, feedback: str | int | dict) -> bool:
+        token = identification.access_token if isinstance(identification, Identification) else identification
+        self._make_api_call(self.conversation_feedback_url(token), 'POST', {'feedback': feedback})
+        return True

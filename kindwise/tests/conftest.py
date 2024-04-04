@@ -8,7 +8,7 @@ from unittest.mock import patch
 import pytest
 
 from kindwise import settings
-from kindwise.models import UsageInfo, SearchResult
+from kindwise.models import UsageInfo, MessageType, SearchResult
 
 SYSTEMS = ['insect', 'mushroom', 'plant', 'crop']
 
@@ -74,6 +74,32 @@ def run_test_requests_to_server(api, system_name, image_path, identification_typ
         assert identification.feedback.rating == 5
         assert identification.custom_id == custom_id
         assert identification.input.datetime == date_time
+
+        # conversation
+
+        print('Conversation: `Hi`')
+        try:
+            conversation = api.ask_question(identification.access_token, 'Hi')
+        except NotImplementedError:
+            print('Conversation is not implemented')
+        else:
+
+            def check_conversation(conv):
+                assert len(conv.messages) == 2
+                assert conv.identification == identification.access_token
+                assert conv.messages[0].content == 'Hi'
+                assert conv.messages[0].type == MessageType.QUESTION
+                assert conv.messages[1].content is not None
+                assert conv.messages[1].type == MessageType.ANSWER
+
+            check_conversation(conversation)
+            assert api.conversation_feedback(conversation.identification, {'rating': 5})
+            conversation = api.get_conversation(conversation.identification)
+            check_conversation(conversation)
+            assert conversation.feedback == {'rating': 5}
+            assert api.delete_conversation(conversation.identification.access_token)
+            with pytest.raises(ValueError):
+                api.get_conversation(conversation.identification.access_token)
 
         assert api.delete_identification(identification.access_token)
 
