@@ -38,7 +38,10 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType]):
             'Content-Type': 'application/json',
             'Api-Key': self.api_key,
         }
-        return requests.request(method, url, json=data, headers=headers)
+        response = requests.request(method, url, json=data, headers=headers)
+        if not response.ok:
+            raise ValueError(f'Error while making an API call: {response.status_code=} {response.text=}')
+        return response
 
     @staticmethod
     def _encode_image(image: PurePath | str | bytes | BinaryIO | Image.Image, max_image_size: int | None) -> str:
@@ -159,10 +162,8 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType]):
         )
         url = f'{self.identification_url}{query}'
         response = self._make_api_call(url, 'POST', payload)
-        if not response.ok:
-            raise ValueError(f'Error while creating an identification: {response.status_code=} {response.text=}')
         data = response.json()
-        return data if as_dict else self.identification_class.from_dict(response.json())
+        return data if as_dict else self.identification_class.from_dict(data)
 
     def _build_query(
         self,
@@ -202,25 +203,19 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType]):
         query = self._build_query(details=details, language=language, extra_get_params=extra_get_params)
         url = f'{self.identification_url}/{token}{query}'
         response = self._make_api_call(url, 'GET')
-        if not response.ok:
-            raise ValueError(f'Error while getting an identification: {response.status_code=} {response.text=}')
         data = response.json()
-        return data if as_dict else self.identification_class.from_dict(response.json())
+        return data if as_dict else self.identification_class.from_dict(data)
 
     def delete_identification(self, identification: IdentificationType | str | int) -> bool:
         token = identification.access_token if isinstance(identification, Identification) else identification
         url = f'{self.identification_url}/{token}'
-        response = self._make_api_call(url, 'DELETE')
-        if not response.ok:
-            raise ValueError(f'Error while deleting an identification: {response.status_code=} {response.text=}')
+        self._make_api_call(url, 'DELETE')
         return True
 
     def usage_info(self, as_dict: bool = False) -> UsageInfo | dict:
         response = self._make_api_call(self.usage_info_url, 'GET')
-        if not response.ok:
-            raise ValueError(f'Error while getting an usage info: {response.status_code=} {response.text=}')
         data = response.json()
-        return data if as_dict else UsageInfo.from_dict(response.json())
+        return data if as_dict else UsageInfo.from_dict(data)
 
     def feedback(
         self, identification: IdentificationType | str | int, comment: str | None = None, rating: int | None = None
@@ -233,9 +228,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType]):
             data['comment'] = comment
         if rating is not None:
             data['rating'] = rating
-        response = self._make_api_call(self.feedback_url(token), 'POST', data)
-        if not response.ok:
-            raise ValueError(f'Error while sending a feedback: {response.status_code=} {response.text=}')
+        self._make_api_call(self.feedback_url(token), 'POST', data)
         return True
 
     @property
