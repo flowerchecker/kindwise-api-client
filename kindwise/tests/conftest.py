@@ -25,7 +25,7 @@ def api_key():
 def staging_api(api, system):
     assert system.lower() in SYSTEMS
     staging_host = os.getenv(f'{system.upper()}_STAGING_HOST')
-    assert staging_host is not None, f'{system.capitalize()}_STAGING_HOST is not set in .env file'
+    assert staging_host is not None, f'{system.upper()}_STAGING_HOST is not set in .env file'
     api_key = os.getenv(f'{system.upper()}_STAGING_API_KEY')
     assert api_key is not None, f'{system.capitalize()}_STAGING_API_KEY is not set in .env file'
     with patch.object(api, 'host', staging_host):
