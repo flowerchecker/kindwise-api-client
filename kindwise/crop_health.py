@@ -3,7 +3,7 @@ from pathlib import Path
 
 from kindwise import settings
 from kindwise.core import KindwiseApi
-from kindwise.models import Identification, ResultEvaluation, ClassificationWithScientificName
+from kindwise.models import Identification, ResultEvaluation, ClassificationWithScientificName, Conversation
 
 
 @dataclass
@@ -53,3 +53,15 @@ class CropHealthApi(KindwiseApi[CropIdentification]):
     @property
     def views_path(self) -> Path:
         return settings.APP_DIR / 'resources' / f'views.crop_health.disease.json'
+
+    def ask_question(
+        self,
+        identification: CropIdentification | str | int,
+        question: str,
+        model: str = None,
+        app_name: str = None,
+        prompt: str = None,
+        temperature: float = None,
+        as_dict: bool = False,
+    ) -> Conversation:
+        raise NotImplementedError('Asking questions is currently not supported by crop.health.')

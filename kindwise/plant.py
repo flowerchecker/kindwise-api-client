@@ -17,6 +17,7 @@ from kindwise.models import (
     ResultEvaluation,
     Classification,
     Suggestion,
+    Conversation,
 )
 
 
@@ -378,3 +379,15 @@ class PlantApi(KindwiseApi[PlantIdentification]):
     def available_disease_details(cls) -> list[dict[str, any]]:
         with open(settings.APP_DIR / 'resources' / f'views.plant.disease.json') as f:
             return json.load(f)
+
+    def ask_question(
+        self,
+        identification: PlantIdentification | str | int,
+        question: str,
+        model: str = None,
+        app_name: str = None,
+        prompt: str = None,
+        temperature: float = None,
+        as_dict: bool = False,
+    ) -> Conversation:
+        raise NotImplementedError('Asking questions is currently not supported by plant.id')
