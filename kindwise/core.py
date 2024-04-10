@@ -45,7 +45,17 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType]):
 
     @staticmethod
     def _encode_image(image: PurePath | str | bytes | BinaryIO | Image.Image, max_image_size: int | None) -> str:
-        if isinstance(image, str) and len(image) <= 250:  # first try str as a path to a file
+        def get_image_from_url() -> None | bytes:
+            if not isinstance(image, str) or not image.startswith(('http://', 'https://')):
+                return None
+            response = requests.get(image)
+            if not response.ok:
+                return None
+            return response.content
+
+        if _img := get_image_from_url():
+            image = _img
+        elif isinstance(image, str) and len(image) <= 250:  # first try str as a path to a file
             image = Path(image)
         if isinstance(image, PurePath):  # Path
             with open(image, 'rb') as f:

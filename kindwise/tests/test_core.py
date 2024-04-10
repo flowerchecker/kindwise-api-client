@@ -156,13 +156,18 @@ def image_path():
 
 
 @pytest.fixture
-def image_base64(image_path):
+def image(image_path):
     with open(image_path, 'rb') as file:
-        return base64.b64encode(file.read()).decode('ascii')
+        return file.read()
+
+
+@pytest.fixture
+def image_base64(image):
+    return base64.b64encode(image).decode('ascii')
 
 
 def test_identify(
-    api, api_key, identification, identification_dict, image_path, image_base64, requests_mock, request_matcher
+    api, api_key, identification, identification_dict, image_path, image, image_base64, requests_mock, request_matcher
 ):
     # check result
     request_matcher.check_identify_request(expected_result=identification, max_image_size=None)
@@ -237,6 +242,12 @@ def test_identify(
     # with open(image_path, 'rb') as f:
     img = Image.open(image_path)
     request_matcher.check_identify_request(image=img, max_image_size=None)
+    # accept image as url
+    requests_mock.get('http://example.com/image.jpg', content=image)
+    request_matcher.check_identify_request(
+        image='http://example.com/image.jpg', max_image_size=None, expected_payload=[('images', [image_base64])]
+    )
+
     # check if image is resized
     with open(image_path, 'rb') as f:
         img = Image.open(f)
