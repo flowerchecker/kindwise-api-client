@@ -1,12 +1,11 @@
 import base64
 import io
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import PurePath, Path
 
 import pytest
 from PIL import Image
 
-from kindwise.insect import InsectApi
 from kindwise.models import (
     Identification,
     Result,
