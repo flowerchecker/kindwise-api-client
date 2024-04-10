@@ -29,8 +29,7 @@ The API key serves to identify your account and is required to make requests to 
 To use Kindwise API, an active API key is needed. See the section [above](#api-key) on how to get an API key.
 
 ```python
-from kindwise.plant import PlantApi
-from kindwise.models import PlantIdentification, UsageInfo
+from kindwise import PlantApi, PlantIdentification, UsageInfo
 
 # initialize plant.id api
 # "PLANT_API_KEY" environment variable can be set instead of specifying api_key
@@ -66,18 +65,18 @@ SDK supports the following Kindwise systems:
 
 Each system has its class, which is used to make requests to the API. Each class has the following methods:
 
-| method                                                    | description                                                                         | return type        | plant.id           | insect.id          | mushroom.id        | crop.health        | 
-|-----------------------------------------------------------|-------------------------------------------------------------------------------------|--------------------|--------------------|--------------------|--------------------|--------------------| 
-| [`identify`](#identify)                                   | create new identification                                                           | `Identification`   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | 
-| [`get_identification`](#get_identification)               | get identification by token                                                         | `Identification`   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | 
-| [`delete_identification`](#delete_identification)         | delete identification by token                                                      | boolean            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | 
-| [`usage_info`](#usage_info)                               | get api key usage information                                                       | `UsageInfo`        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | 
-| [`feedback`](#feedback)                                   | send feedback for identification                                                    | boolean            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | 
-| [`health_assessment`](#health_assessment)                 | create health assessment identification                                             | `HealthAssessment` | :white_check_mark: | :x:                | :x:                | :x:                | 
-| [`get_health_assessment`](#get_health_assessment)         | get health assessment identification                                                | `HealthAssessment` | :white_check_mark: | :x:                | :x:                | :x:                | 
-| [`delete_health_assessment`](#delete_health_assessment)   | delete health assessment                                                            | boolean            | :white_check_mark: | :x:                | :x:                | :x:                | 
-| [`available_details`](#available_details)                 | details which can be used to specify additional information for `identify`          | dict               | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | 
-| [`available_disease_details`](#available_disease_details) | details which can be used to specify additional information for `health_assessment` | dict               | :white_check_mark: | :x:                | :x:                | :x:                | 
+| method                                                    | description                                                                         | return type        | plant.id           | insect.id          | mushroom.id        | crop.health        |
+|-----------------------------------------------------------|-------------------------------------------------------------------------------------|--------------------|--------------------|--------------------|--------------------|--------------------|
+| [`identify`](#identify)                                   | create new identification                                                           | `Identification`   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| [`get_identification`](#get_identification)               | get identification by token                                                         | `Identification`   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| [`delete_identification`](#delete_identification)         | delete identification by token                                                      | boolean            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| [`usage_info`](#usage_info)                               | get api key usage information                                                       | `UsageInfo`        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| [`feedback`](#feedback)                                   | send feedback for identification                                                    | boolean            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| [`health_assessment`](#health_assessment)                 | create health assessment identification                                             | `HealthAssessment` | :white_check_mark: | :x:                | :x:                | :x:                |
+| [`get_health_assessment`](#get_health_assessment)         | get health assessment identification                                                | `HealthAssessment` | :white_check_mark: | :x:                | :x:                | :x:                |
+| [`delete_health_assessment`](#delete_health_assessment)   | delete health assessment                                                            | boolean            | :white_check_mark: | :x:                | :x:                | :x:                |
+| [`available_details`](#available_details)                 | details which can be used to specify additional information for `identify`          | dict               | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| [`available_disease_details`](#available_disease_details) | details which can be used to specify additional information for `health_assessment` | dict               | :white_check_mark: | :x:                | :x:                | :x:                |
 
 Datetime objects are created by method `datetime.fromtimestamp(timestamp)`. This means that datetime objects are in
 local timezone.
@@ -187,6 +186,15 @@ with open('path/to/image.jpg', 'rb') as image :
 with open('path/to/image.jpg', 'rb') as image :
     image_in_base64 = base64.b64encode(image.read())
     identification_from_base64: PlantIdentification = api.identify(image)
+
+# identification created from PIL.Image.Image object
+from PIL import Image
+image = Image.open('path/to/image.jpg')
+identification_from_pil: PlantIdentification = api.identify(image)
+
+# identification created from image url
+image_url = 'https://api.gbif.org/v1/image/cache/fit-in/500x/occurrence/4596837568/media/33ff3ad210e56b73ade6f9fe622c650e'
+identification_from_url: PlantIdentification = api.identify(image_url)
 ```
 
 When you don't want to wait until the identification is finished, you can specify `asynchronous=True` and
@@ -284,15 +292,21 @@ from datetime import datetime
 
 from kindwise import PlantApi, HealthAssessment
 
-api = PlantApi(api_key='your_api_key')
+api = PlantApi(api_key="your_api_key")
 # the same as in identify method
-images = ['path/to/image1.jpg', 'path/to/image2.jpg', 'path/to/image3.jpg', 'path/to/image4.jpg', 'path/to/image5.jpg']
+images = [
+    "path/to/image1.jpg",
+    "path/to/image2.jpg",
+    "path/to/image3.jpg",
+    "path/to/image4.jpg",
+    "path/to/image5.jpg",
+]
 
 # details included in identification
-details = ['local_name', 'description', 'treatment', 'cause', 'image']
+details = ["local_name", "description", "treatment", "cause", "image"]
 
 # specify up to 3 languages
-language = ['en', 'cs']
+language = ["en", "cs"]
 
 # default for similar_images is True
 similar_images = True
@@ -329,6 +343,7 @@ identification: HealthAssessment = api.health_assessment(
     date_time=date_time,
     max_image_size=max_image_size,
 )
+
 ```
 
 When you don't want to wait until the identification is finished, you can specify `asynchronous=True` similar
