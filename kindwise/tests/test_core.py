@@ -1,7 +1,7 @@
 import base64
 import io
-from datetime import datetime
-from pathlib import PurePath
+from datetime import datetime, timezone
+from pathlib import PurePath, Path
 
 import pytest
 from PIL import Image
@@ -18,11 +18,28 @@ from kindwise.models import (
 )
 from .conftest import IMAGE_DIR
 from .. import settings
+from ..core import KindwiseApi
+
+
+class TestApi(KindwiseApi):
+    host = 'http://test.id'
+
+    @property
+    def identification_url(self):
+        return f'{self.host}/api/v1/identification'
+
+    @property
+    def usage_info_url(self):
+        return f'{self.host}/api/v1/usage_info'
+
+    @property
+    def views_path(self) -> Path:
+        return settings.APP_DIR / 'resources' / f'views.insect.json'
 
 
 @pytest.fixture
 def api(api_key):
-    api_ = InsectApi(api_key=api_key)
+    api_ = TestApi(api_key=api_key)
     return api_
 
 
