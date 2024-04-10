@@ -24,7 +24,13 @@ from kindwise.plant import (
     TaxaSpecificSuggestion,
     PlantInput,
 )
-from .conftest import IMAGE_DIR, run_test_requests_to_server, staging_api, run_test_available_details
+from .conftest import (
+    IMAGE_DIR,
+    run_test_requests_to_server,
+    staging_api,
+    run_test_available_details,
+    skip_integration_tests,
+)
 from ..plant import PlantApi
 
 
@@ -836,6 +842,7 @@ def test_delete_plant_identification(api, api_key, identification, requests_mock
     assert request_record.url == f'{api.identification_url}/{identification.custom_id}'
 
 
+@skip_integration_tests
 def test_requests_to_plant_server(api: PlantApi, image_path):
     system_name = 'plant'
     run_test_requests_to_server(api, system_name, image_path, PlantIdentification)

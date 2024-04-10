@@ -27,11 +27,4 @@ jobs:
       run: |
         pytest -vv
       env:
-        PLANT_STAGING_API_KEY: ${{ secrets.PLANT_STAGING_API_KEY }}
-        PLANT_STAGING_HOST: ${{ secrets.PLANT_STAGING_HOST }}
-        INSECT_STAGING_API_KEY: ${{ secrets.INSECT_STAGING_API_KEY }}
-        INSECT_STAGING_HOST: ${{ secrets.INSECT_STAGING_HOST }}
-        MUSHROOM_STAGING_API_KEY: ${{ secrets.MUSHROOM_STAGING_API_KEY }}
-        MUSHROOM_STAGING_HOST: ${{ secrets.MUSHROOM_STAGING_HOST }}
-        CROP_STAGING_API_KEY: ${{ secrets.CROP_STAGING_API_KEY }}
-        CROP_STAGING_HOST: ${{ secrets.CROP_STAGING_HOST }}
+        SKIP_INTEGRATION_TESTS: true
