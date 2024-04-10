@@ -4,7 +4,7 @@ from pathlib import Path
 
 from kindwise import settings
 from kindwise.core import KindwiseApi
-from kindwise.models import Identification, ResultEvaluation, ClassificationWithScientificName
+from kindwise.models import Identification, ResultEvaluation, ClassificationWithScientificName, Conversation
 
 
 @dataclass
@@ -63,3 +63,15 @@ class CropHealthApi(KindwiseApi[CropIdentification, CropHealthKBType]):
     @property
     def kb_api_url(self):
         raise NotImplementedError('Crop health API does not support knowledge base API')
+
+    def ask_question(
+        self,
+        identification: CropIdentification | str | int,
+        question: str,
+        model: str = None,
+        app_name: str = None,
+        prompt: str = None,
+        temperature: float = None,
+        as_dict: bool = False,
+    ) -> Conversation:
+        raise NotImplementedError('Asking questions is currently not supported by crop.health.')

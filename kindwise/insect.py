@@ -3,7 +3,7 @@ from pathlib import Path
 
 from kindwise import settings
 from kindwise.core import KindwiseApi
-from kindwise.models import Identification
+from kindwise.models import Identification, Conversation
 
 
 class InsectKBType(str, enum.Enum):
@@ -37,3 +37,15 @@ class InsectApi(KindwiseApi[Identification, InsectKBType]):
     @property
     def views_path(self) -> Path:
         return settings.APP_DIR / 'resources' / f'views.insect.json'
+
+    def ask_question(
+        self,
+        identification: Identification | str | int,
+        question: str,
+        model: str = None,
+        app_name: str = None,
+        prompt: str = None,
+        temperature: float = None,
+        as_dict: bool = False,
+    ) -> Conversation:
+        raise NotImplementedError('Asking questions is currently not supported by insect.id')
