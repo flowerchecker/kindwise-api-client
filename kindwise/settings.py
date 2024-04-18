@@ -11,3 +11,8 @@ MUSHROOM_API_KEY = os.getenv('MUSHROOM_API_KEY')
 CROP_HEALTH_API_KEY = os.getenv('CROP_HEALTH_API_KEY')
 
 APP_DIR = Path(__file__).resolve().parent
+
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')
+assert ENVIRONMENT in {'LOCAL', 'STAGING', 'PRODUCTION'}, (
+    f'Invalid environment: {ENVIRONMENT}; ' f'must be one of `LOCAL`, `STAGING`, `PRODUCTION`'
+)

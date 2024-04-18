@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
+from kindwise import settings
 from kindwise.models import UsageInfo
 
 SYSTEMS = ['insect', 'mushroom', 'plant', 'crop']
@@ -26,20 +27,31 @@ def api_key():
 
 
 @contextmanager
-def staging_api(api, system):
+def environment_api(api, system):
     assert system.lower() in SYSTEMS
-    staging_host = os.getenv(f'{system.upper()}_STAGING_HOST')
-    assert staging_host is not None, f'{system.upper()}_STAGING_HOST is not set in .env file'
-    api_key = os.getenv(f'{system.upper()}_STAGING_API_KEY')
-    assert api_key is not None, f'{system.upper()}_STAGING_API_KEY is not set in .env file'
-    with patch.object(api, 'host', staging_host):
+    host = os.getenv(f'{system.upper()}_{settings.ENVIRONMENT}_HOST')
+    if settings.ENVIRONMENT == 'LOCAL' and host is None:
+        host = 'http://localhost:8000'
+    if settings.ENVIRONMENT == 'PRODUCTION' and host is None:
+        host = api.host
+    assert host is not None, f'{system.upper()}_{settings.ENVIRONMENT}_HOST is not set in .env file'
+    api_key = os.getenv(f'{system.upper()}_{settings.ENVIRONMENT}_API_KEY')
+    if settings.ENVIRONMENT == 'PRODUCTION' and api_key is None:
+        if system == 'crop':
+            api_key_name = 'CROP_HEALTH_API_KEY'
+        else:
+            api_key_name = f'{system.upper()}_API_KEY'
+        api_key = getattr(settings, api_key_name)
+        assert api_key is not None, f'{api_key_name} is not set in .env file'
+    assert api_key is not None, f'{system.upper()}_{settings.ENVIRONMENT}_API_KEY is not set in .env file'
+    with patch.object(api, 'host', host):
         with patch.object(api, 'api_key', api_key):
             yield api
 
 
 def run_test_requests_to_server(api, system_name, image_path, identification_type, model_name='classification'):
     assert system_name.lower() in SYSTEMS
-    with staging_api(api, system_name) as api:
+    with environment_api(api, system_name) as api:
         usage_info = api.usage_info()
         print('Usage info:')
         print(usage_info)

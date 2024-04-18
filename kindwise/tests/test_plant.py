@@ -27,7 +27,7 @@ from kindwise.plant import (
 from .conftest import (
     IMAGE_DIR,
     run_test_requests_to_server,
-    staging_api,
+    environment_api,
     run_test_available_details,
     skip_integration_tests,
 )
@@ -846,7 +846,7 @@ def test_delete_plant_identification(api, api_key, identification, requests_mock
 def test_requests_to_plant_server(api: PlantApi, image_path):
     system_name = 'plant'
     run_test_requests_to_server(api, system_name, image_path, PlantIdentification)
-    with staging_api(api, system_name) as api:
+    with environment_api(api, system_name) as api:
         custom_id = random.randint(1000000, 2000000)
         date_time = datetime.now()
         print(f'Health assessment with {custom_id=} and {date_time=}:')
