@@ -48,10 +48,10 @@ def run_test_requests_to_server(api, system_name, image_path, identification_typ
         custom_id = random.randint(1000000, 2000000)
         date_time = datetime.now()
         identification = api.identify(
-            image_path, latitude_longitude=(1.0, 2.0), asynchronous=True, custom_id=custom_id, date_time=date_time
+            image_path, latitude_longitude=(1.0, 2.0), custom_id=custom_id, date_time=date_time
         )
         assert isinstance(identification, identification_type)
-        print(f'Identification created with async, {date_time=} and {custom_id=}:')
+        print(f'Identification created with, {date_time=} and {custom_id=}:')
         print(identification)
         print()
         assert api.feedback(identification.access_token, comment='correct', rating=5)

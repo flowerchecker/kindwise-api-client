@@ -849,10 +849,9 @@ def test_requests_to_plant_server(api: PlantApi, image_path):
     with staging_api(api, system_name) as api:
         custom_id = random.randint(1000000, 2000000)
         date_time = datetime.now()
-        print(f'Health assessment asynchronous with {custom_id=} and {date_time=}:')
+        print(f'Health assessment with {custom_id=} and {date_time=}:')
         health_assessment = api.health_assessment(
             image_path,
-            asynchronous=True,
             custom_id=custom_id,
             date_time=date_time,
             latitude_longitude=(49.20340, 16.57318),
