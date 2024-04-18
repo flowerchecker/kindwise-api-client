@@ -27,4 +27,4 @@ jobs:
       run: |
         pytest -vv
       env:
-        SKIP_INTEGRATION_TESTS: true
+        ENVIRONMENT: PRODUCTION

@@ -16,10 +16,6 @@ TEST_DIR = Path(__file__).resolve().parent
 IMAGE_DIR = TEST_DIR / 'resources' / 'images'
 MOCK_REQUESTS = True
 
-skip_integration_tests = pytest.mark.skipif(
-    bool(os.environ.get('SKIP_INTEGRATION_TESTS', False)), reason='Skipping because due to inability to contact staging'
-)
-
 
 @pytest.fixture
 def api_key():

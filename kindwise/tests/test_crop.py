@@ -1,9 +1,8 @@
-from .conftest import run_test_requests_to_server, IMAGE_DIR, run_test_available_details, skip_integration_tests
+from .conftest import run_test_requests_to_server, IMAGE_DIR, run_test_available_details
 from .. import CropHealthApi
 from ..crop_health import CropIdentification
 
 
-@skip_integration_tests
 def test_requests_to_crop_server(api_key):
     run_test_requests_to_server(
         CropHealthApi(api_key=api_key),

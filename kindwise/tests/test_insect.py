@@ -1,9 +1,8 @@
 from kindwise.models import Identification
-from .conftest import run_test_requests_to_server, IMAGE_DIR, run_test_available_details, skip_integration_tests
+from .conftest import run_test_requests_to_server, IMAGE_DIR, run_test_available_details
 from ..insect import InsectApi
 
 
-@skip_integration_tests
 def test_requests_to_insect_server(api_key):
     run_test_requests_to_server(InsectApi(api_key=api_key), 'insect', IMAGE_DIR / 'bee.jpeg', Identification)
 
