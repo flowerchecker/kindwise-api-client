@@ -12,7 +12,7 @@ CROP_HEALTH_API_KEY = os.getenv('CROP_HEALTH_API_KEY')
 
 APP_DIR = Path(__file__).resolve().parent
 
-ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'STAGING')
 assert ENVIRONMENT in {'LOCAL', 'STAGING', 'PRODUCTION'}, (
     f'Invalid environment: {ENVIRONMENT}; ' f'must be one of `LOCAL`, `STAGING`, `PRODUCTION`'
 )
