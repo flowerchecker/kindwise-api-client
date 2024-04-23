@@ -1,3 +1,4 @@
+import enum
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -30,8 +31,13 @@ class CropIdentification(Identification):
         return CropResult
 
 
-class CropHealthApi(KindwiseApi[CropIdentification]):
+class CropHealthKBType(str, enum.Enum):
+    CROP = 'crop'
+
+
+class CropHealthApi(KindwiseApi[CropIdentification, CropHealthKBType]):
     host = 'https://crop.kindwise.com'
+    default_kb_type = CropHealthKBType.CROP
     identification_class = CropIdentification
 
     def __init__(self, api_key: str = None):
@@ -53,3 +59,7 @@ class CropHealthApi(KindwiseApi[CropIdentification]):
     @property
     def views_path(self) -> Path:
         return settings.APP_DIR / 'resources' / f'views.crop_health.disease.json'
+
+    @property
+    def kb_api_url(self):
+        raise NotImplementedError('Crop health API does not support knowledge base API')

@@ -9,13 +9,15 @@ from typing import BinaryIO, Any, Generic, TypeVar
 import requests
 from PIL import Image
 
-from kindwise.models import Identification, UsageInfo
+from kindwise.models import Identification, UsageInfo, SearchResult
 
 IdentificationType = TypeVar('IdentificationType')
+KBType = TypeVar('KBType')
 
 
-class KindwiseApi(abc.ABC, Generic[IdentificationType]):
+class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
     identification_class = Identification
+    default_kb_type = None
 
     def __init__(self, api_key: str):
         self.api_key = api_key
@@ -28,6 +30,11 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType]):
     @property
     @abc.abstractmethod
     def usage_info_url(self):
+        ...
+
+    @property
+    @abc.abstractmethod
+    def kb_api_url(self):
         ...
 
     def feedback_url(self, token: str):
@@ -181,6 +188,8 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType]):
         language: str | list[str] = None,
         asynchronous: bool = False,
         extra_get_params: str | dict[str, str] = None,
+        limit: int = None,
+        query: str = None,
         **kwargs,
     ):
         if isinstance(details, str):
@@ -197,7 +206,9 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType]):
             if extra_get_params.startswith('?'):
                 extra_get_params = extra_get_params[1:] + '&'
         async_query = f'async=true&' if asynchronous else ''
-        query = f'?{details_query}{language_query}{async_query}{extra_get_params}'
+        query = '' if query is None else f'q={query}&'
+        limit = '' if limit is None else f'limit={limit}&'
+        query = f'?{query}{limit}{details_query}{language_query}{async_query}{extra_get_params}'
         if query.endswith('&'):
             query = query[:-1]
         return '' if query == '?' else query
@@ -249,3 +260,34 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType]):
     def available_details(self) -> list[dict[str, any]]:
         with open(self.views_path) as f:
             return json.load(f)
+
+    def search(
+        self,
+        query: str,
+        limit: int = None,
+        language: str = None,
+        kb_type: KBType | str = None,
+        as_dict=False,
+    ) -> SearchResult | dict:
+        if not query:
+            raise ValueError('Query parameter q must be provided')
+        if isinstance(limit, int) and limit < 1:
+            raise ValueError(f'Limit must be positive integer.')
+        if kb_type is None:
+            kb_type = self.default_kb_type
+        url = f'{self.kb_api_url}/{kb_type}/name_search{self._build_query(query=query, limit=limit, language=language)}'
+        response = self._make_api_call(url, 'GET')
+        if not response.ok:
+            raise ValueError(f'Error while searching knowledge base: {response.status_code=} {response.text=}')
+        return response.json() if as_dict else SearchResult.from_dict(response.json())
+
+    def get_kb_detail(
+        self, access_token: str, details: str | list[str], language: str = None, kb_type: KBType | str = None
+    ) -> dict:
+        if kb_type is None:
+            kb_type = self.default_kb_type
+        url = f'{self.kb_api_url}/{kb_type}/{access_token}{self._build_query(language=language, details=details)}'
+        response = self._make_api_call(url, 'GET')
+        if not response.ok:
+            raise ValueError(f'Error while getting knowledge base detail: {response.status_code=} {response.text=}')
+        return response.json()

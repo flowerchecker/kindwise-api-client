@@ -236,3 +236,37 @@ class UsageInfo:
             can_use_credits=CanUseCredits.from_dict(data['can_use_credits']),
             remaining=Limits.from_dict(data['remaining']),
         )
+
+
+@dataclass
+class SearchEntity:
+    matched_in: str
+    matched_in_type: str
+    access_token: str
+    match_position: int
+    match_length: int
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            matched_in=data['matched_in'],
+            matched_in_type=data['matched_in_type'],
+            access_token=data['access_token'],
+            match_position=data['match_position'],
+            match_length=data['match_length'],
+        )
+
+
+@dataclass
+class SearchResult:
+    entities: list[SearchEntity]
+    entities_trimmed: bool
+    limit: int
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            entities=[SearchEntity.from_dict(entity) for entity in data['entities']],
+            entities_trimmed=data['entities_trimmed'],
+            limit=data['limit'],
+        )

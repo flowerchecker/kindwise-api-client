@@ -1,3 +1,4 @@
+import enum
 from pathlib import Path
 
 from kindwise import settings
@@ -5,8 +6,13 @@ from kindwise.core import KindwiseApi
 from kindwise.models import Identification
 
 
-class InsectApi(KindwiseApi[Identification]):
+class InsectKBType(str, enum.Enum):
+    INSECT = 'insect'
+
+
+class InsectApi(KindwiseApi[Identification, InsectKBType]):
     host = 'https://insect.kindwise.com'
+    default_kb_type = InsectKBType.INSECT
 
     def __init__(self, api_key: str = None):
         api_key = settings.INSECT_API_KEY if api_key is None else api_key
@@ -23,6 +29,10 @@ class InsectApi(KindwiseApi[Identification]):
     @property
     def usage_info_url(self):
         return f'{self.host}/api/v1/usage_info'
+
+    @property
+    def kb_api_url(self):
+        return f'{self.host}/api/v1/kb'
 
     @property
     def views_path(self) -> Path:

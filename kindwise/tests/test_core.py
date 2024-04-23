@@ -1,4 +1,5 @@
 import base64
+import enum
 import io
 from datetime import datetime
 from pathlib import PurePath, Path
@@ -14,14 +15,23 @@ from kindwise.models import (
     Suggestion,
     SimilarImage,
     IdentificationStatus,
+    SearchResult,
+    SearchEntity,
 )
 from .conftest import IMAGE_DIR
 from .. import settings
 from ..core import KindwiseApi
 
 
-class TestApi(KindwiseApi):
+class TestKBType(str, enum.Enum):
+    TEST = 'test'
+    TEST_2 = 'test_2'
+    default = TEST
+
+
+class TestApi(KindwiseApi[Identification, TestKBType]):
     host = 'http://test.id'
+    default_kb_type = TestKBType.TEST
 
     @property
     def identification_url(self):
@@ -34,6 +44,10 @@ class TestApi(KindwiseApi):
     @property
     def views_path(self) -> Path:
         return settings.APP_DIR / 'resources' / f'views.insect.json'
+
+    @property
+    def kb_api_url(self):
+        return f'{self.host}/api/v1/kb'
 
 
 @pytest.fixture
@@ -403,3 +417,102 @@ def test_feedback(api, api_key, identification, requests_mock):
     request_record = requests_mock.request_history.pop()
     assert request_record.method == 'POST'
     assert request_record.url == f'{api.identification_url}/{identification.access_token}/feedback'
+
+
+def test_search(api, api_key, requests_mock):
+    requests_mock.get(
+        f'{api.kb_api_url}/{TestKBType.TEST}/name_search',
+        json={
+            'entities': [
+                {
+                    'matched_in': 'Bee Beetle',
+                    'matched_in_type': 'common_name',
+                    'access_token': 'VW5rUkREcXFEVFM2SzM2dDYKXDBzJ0lIJzVjUy8LDk0-',
+                    'match_position': 0,
+                    'match_length': 3,
+                },
+            ],
+            'entities_trimmed': False,
+            'limit': 20,
+        },
+    )
+    response = api.search('bee')
+    request_record = requests_mock.request_history.pop()
+    assert request_record.method == 'GET'
+    assert request_record.url == f'{api.kb_api_url}/{TestKBType.TEST}/name_search?q=bee'
+    assert request_record.headers['Content-Type'] == 'application/json'
+    assert request_record.headers['Api-Key'] == api_key
+    assert response == SearchResult(
+        entities=[
+            SearchEntity('Bee Beetle', 'common_name', 'VW5rUkREcXFEVFM2SzM2dDYKXDBzJ0lIJzVjUy8LDk0-', 0, 3),
+        ],
+        entities_trimmed=False,
+        limit=20,
+    )
+    api.search('vcela', language='cz', limit=1)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.kb_api_url}/{TestKBType.TEST}/name_search?q=vcela&limit=1&language=cz'
+    # check bundle
+    api = TestApi(api_key=api_key)
+    plant_api_res = {
+        'entities': [
+            {
+                'matched_in': 'Aloe',
+                'matched_in_type': 'entity_name',
+                'access_token': 'bG1NbjFDTkoxOHNTTHlIYwpcKF8CIS9yCAoXY3ofelA-',
+                'match_position': 0,
+                'match_length': 4,
+            }
+        ],
+        'entities_trimmed': True,
+        'limit': 20,
+    }
+    requests_mock.get(f'{api.kb_api_url}/{TestKBType.TEST}/name_search', json=plant_api_res)
+    api.search('aloe')
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.kb_api_url}/{TestKBType.TEST}/name_search?q=aloe'
+    requests_mock.get(f'{api.kb_api_url}/{TestKBType.TEST_2}/name_search', json=plant_api_res)
+    api.search('downy', kb_type=TestKBType.TEST_2)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.kb_api_url}/{TestKBType.TEST_2}/name_search?q=downy'
+    with pytest.raises(ValueError):
+        api.search('downy', limit=0)
+
+
+def test_get_kb_detail(api, api_key, requests_mock):
+    access_token = 's34d5rft6gyu'
+    requests_mock.get(
+        f'{api.kb_api_url}/{TestKBType.TEST}/{access_token}',
+        json={'gbif_id': 1085281, 'rank': 'species', 'language': 'en', 'name': 'Trichius gallicus'},
+    )
+    response = api.get_kb_detail(access_token, 'rank,gbif_id')
+    request_record = requests_mock.request_history.pop()
+    assert request_record.method == 'GET'
+    assert request_record.url == f'{api.kb_api_url}/{TestKBType.TEST}/{access_token}?details=rank,gbif_id'
+    assert request_record.headers['Content-Type'] == 'application/json'
+    assert request_record.headers['Api-Key'] == api_key
+    assert response == {'gbif_id': 1085281, 'rank': 'species', 'language': 'en', 'name': 'Trichius gallicus'}
+
+    api.get_kb_detail(access_token, ['rank', 'gbif_id'], language='cs')
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.kb_api_url}/{TestKBType.TEST}/{access_token}?details=rank,gbif_id&language=cs'
+
+    # check bundle
+    api = TestApi(api_key=api_key)
+    requests_mock.get(
+        f'{api.kb_api_url}/{TestKBType.TEST}/{access_token}',
+        json={'gbif_id': 2777724, 'rank': 'species', 'language': 'en', 'name': 'Aloe vera'},
+    )
+    response = api.get_kb_detail(access_token, 'rank,gbif_id')
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.kb_api_url}/{TestKBType.TEST}/{access_token}?details=rank,gbif_id'
+    assert response == {'gbif_id': 2777724, 'rank': 'species', 'language': 'en', 'name': 'Aloe vera'}
+
+    requests_mock.get(
+        f'{api.kb_api_url}/{TestKBType.TEST_2}/{access_token}',
+        json={'url': 'https://en.wikipedia.org/wiki/Downy_mildew', 'language': 'en', 'name': 'downy mildew'},
+    )
+    response = api.get_kb_detail(access_token, 'url', kb_type=TestKBType.TEST_2)
+    request_record = requests_mock.request_history.pop()
+    assert request_record.url == f'{api.kb_api_url}/{TestKBType.TEST_2}/{access_token}?details=url'
+    assert response == {'url': 'https://en.wikipedia.org/wiki/Downy_mildew', 'language': 'en', 'name': 'downy mildew'}

@@ -77,6 +77,8 @@ Each system has its class, which is used to make requests to the API. Each class
 | [`delete_health_assessment`](#delete_health_assessment)   | delete health assessment                                                            | boolean            | :white_check_mark: | :x:                | :x:                | :x:                |
 | [`available_details`](#available_details)                 | details which can be used to specify additional information for `identify`          | dict               | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 | [`available_disease_details`](#available_disease_details) | details which can be used to specify additional information for `health_assessment` | dict               | :white_check_mark: | :x:                | :x:                | :x:                |
+| [`search`](#search)                                       | search for entity by query param in our database                                    | `SearchRecord`     | :white_check_mark: | :white_check_mark: | :white_check_mark: | :x:                |
+| [`get_kb_detail`](#get_kb_detail)                         | returns information about entity                                                    | `dict`             | :white_check_mark: | :white_check_mark: | :white_check_mark: | :x:                |
 
 Datetime objects are created by method `datetime.fromtimestamp(timestamp)`. This means that datetime objects are in
 local timezone.
@@ -175,20 +177,21 @@ identification: PlantIdentification = api.identify(
 )
 
 # identification created from stream
-with open('path/to/image.jpg', 'rb') as image :
+with open('path/to/image.jpg', 'rb') as image:
     identification_from_stream: PlantIdentification = api.identify(image.read())
 
 # identification created from file object
-with open('path/to/image.jpg', 'rb') as image :
+with open('path/to/image.jpg', 'rb') as image:
     identification_from_file: PlantIdentification = api.identify(image)
 
 # identification created from base64 encoded image
-with open('path/to/image.jpg', 'rb') as image :
+with open('path/to/image.jpg', 'rb') as image:
     image_in_base64 = base64.b64encode(image.read())
     identification_from_base64: PlantIdentification = api.identify(image)
 
 # identification created from PIL.Image.Image object
 from PIL import Image
+
 image = Image.open('path/to/image.jpg')
 identification_from_pil: PlantIdentification = api.identify(image)
 
@@ -388,4 +391,34 @@ api = PlantApi(api_key='your_api_key')
 
 custom_id = 123  # also works with access_token or HealthAssessment object
 api.delete_health_assessment(custom_id)
+```
+
+#### search
+
+Search for entity(e.g. `Taraxacum`) by query param in our database. You can specify language, limit and database type.
+
+```python
+from kindwise import PlantApi, SearchResult, PlantKBType
+
+api = PlantApi(api_key='your_api_key')
+kb_type = PlantKBType.PLANTS
+limit = 10
+search_result: SearchResult = api.search('Taraxacum', language='en', kb_type=kb_type, limit=limit)
+```
+
+#### get_kb_detail
+
+Returns information about entity(e.g. `Taraxacum`) in our database. You can specify in what language you want the
+result.
+
+```python
+from kindwise import PlantApi, SearchResult
+
+api = PlantApi(api_key='your_api_key')
+search_result: SearchResult = api.search('Taraxacum', language='en', limit=1)
+
+# details can also be specified as a list of strings
+details = 'common_names,taxonomy'
+
+entity_details = api.get_kb_detail(search_result.entities[0].access_token, details, language='de')
 ```

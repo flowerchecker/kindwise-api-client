@@ -1,3 +1,4 @@
+import enum
 import json
 from dataclasses import dataclass
 from datetime import datetime
@@ -18,6 +19,11 @@ from kindwise.models import (
     Classification,
     Suggestion,
 )
+
+
+class PlantKBType(str, enum.Enum):
+    PLANTS = 'plants'
+    DISEASES = 'diseases'
 
 
 @dataclass
@@ -181,8 +187,9 @@ class HealthAssessment(Identification):
         )
 
 
-class PlantApi(KindwiseApi[PlantIdentification]):
+class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
     host = 'https://plant.id'
+    default_kb_type = PlantKBType.PLANTS
 
     def __init__(self, api_key: str = None):
         api_key = settings.PLANT_API_KEY if api_key is None else api_key
@@ -199,6 +206,10 @@ class PlantApi(KindwiseApi[PlantIdentification]):
     @property
     def usage_info_url(self):
         return f'{self.host}/api/v3/usage_info'
+
+    @property
+    def kb_api_url(self):
+        return f'{self.host}/api/v3/kb'
 
     @property
     def health_assessment_url(self):
