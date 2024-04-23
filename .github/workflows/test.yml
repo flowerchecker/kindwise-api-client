@@ -28,3 +28,7 @@ jobs:
         pytest -vv
       env:
         ENVIRONMENT: PRODUCTION
+        PLANT_API_KEY: ${{ secrets.PLANT_API_KEY }}
+        INSECT_API_KEY: ${{ secrets.INSECT_API_KEY }}
+        MUSHROOM_API_KEY: ${{ secrets.MUSHROOM_API_KEY }}
+        CROP_HEALTH_API_KEY: ${{ secrets.CROP_HEALTH_API_KEY }}
