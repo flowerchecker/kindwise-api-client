@@ -1,3 +1,4 @@
+import enum
 from pathlib import Path
 
 from kindwise import settings
@@ -5,7 +6,11 @@ from kindwise.core import KindwiseApi
 from kindwise.models import Identification
 
 
-class SnakeApi(KindwiseApi[Identification]):
+class SnakeKBType(str, enum.Enum):
+    SNAKE = 'snake'
+
+
+class SnakeApi(KindwiseApi[Identification, SnakeKBType]):
     host = 'https://snake.kindwise.com'
 
     def __init__(self, api_key: str = None):
@@ -15,6 +20,10 @@ class SnakeApi(KindwiseApi[Identification]):
                 'API key is required, set it in init method of class or in .env file under "SNAKE_API_KEY" key'
             )
         super().__init__(api_key)
+
+    @property
+    def kb_api_url(self):
+        raise NotImplementedError
 
     @property
     def identification_url(self):
