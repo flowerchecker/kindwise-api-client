@@ -10,7 +10,7 @@ import pytest
 from kindwise import settings
 from kindwise.models import UsageInfo, SearchResult
 
-SYSTEMS = ['insect', 'mushroom', 'plant', 'crop']
+SYSTEMS = ['insect', 'mushroom', 'plant', 'crop', 'snake']
 
 TEST_DIR = Path(__file__).resolve().parent
 IMAGE_DIR = TEST_DIR / 'resources' / 'images'
