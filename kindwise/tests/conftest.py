@@ -97,9 +97,9 @@ def run_test_requests_to_server(api, system_name, image_path, identification_typ
             conversation = api.get_conversation(conversation.identification)
             check_conversation(conversation)
             assert conversation.feedback == {'rating': 5}
-            assert api.delete_conversation(conversation.identification.access_token)
+            assert api.delete_conversation(conversation.identification)
             with pytest.raises(ValueError):
-                api.get_conversation(conversation.identification.access_token)
+                api.get_conversation(conversation.identification)
 
         assert api.delete_identification(identification.access_token)
 
