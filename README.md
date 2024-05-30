@@ -79,11 +79,17 @@ Each system has its class, which is used to make requests to the API. Each class
 | [`available_disease_details`](#available_disease_details) | details which can be used to specify additional information for `health_assessment` | dict               | :white_check_mark: | :x:                | :x:                | :x:                |
 | [`search`](#search)                                       | search for entity by query param in our database                                    | `SearchRecord`     | :white_check_mark: | :white_check_mark: | :white_check_mark: | :x:                |
 | [`get_kb_detail`](#get_kb_detail)                         | returns information about entity                                                    | `dict`             | :white_check_mark: | :white_check_mark: | :white_check_mark: | :x:                |
+| [`ask_question`](#ask_question)                           | conversation about the identification                                               | `Conversation`     | :white_check_mark: | :x:                | :x:                | :x:                |
+| [`get_conversation`](#get_conversation)                   | retrieve the identification's conversation                                          | `Conversation`     | :white_check_mark: | :x:                | :x:                | :x:                |
+| [`conversation_feedback`](#conversation_feedback)         | set conversation's feedback                                                         | `Conversation`     | :white_check_mark: | :x:                | :x:                | :x:                |
+| [`delete_conversation`](#delete_conversation)             | deletes the conversation                                                            | `Conversation`     | :white_check_mark: | :x:                | :x:                | :x:                |
 
 Datetime objects are created by method `datetime.fromtimestamp(timestamp)`. This means that datetime objects are in
 local timezone.
 
-### Documentation
+## Documentation
+
+### Identification
 
 #### available_details
 
@@ -272,6 +278,8 @@ custom_id = 123  # also works with access_token or Identification object
 api.feedback(custom_id, comment='comment', rating=5)
 ```
 
+### Health Assessment
+
 #### available_disease_details
 
 Returns details which can be used to specify additional information for `health_assessment` method. Only available for
@@ -393,6 +401,8 @@ custom_id = 123  # also works with access_token or HealthAssessment object
 api.delete_health_assessment(custom_id)
 ```
 
+### Knowledge Base
+
 #### search
 
 Search for entity(e.g. `Taraxacum`) by query param in our database. You can specify language, limit and database type.
@@ -421,4 +431,92 @@ search_result: SearchResult = api.search('Taraxacum', language='en', limit=1)
 details = 'common_names,taxonomy'
 
 entity_details = api.get_kb_detail(search_result.entities[0].access_token, details, language='de')
+```
+
+### Conversation
+
+#### ask_question
+
+Ask a question to our ChatBot. ChatBot supports multiple backends and its configuration can be modified.
+
+```python
+from kindwise import PlantApi, Conversation
+
+api = PlantApi(api_key="your_api_key")
+
+# Firstly you need to have an access_token of identification about which you want to ask the question
+identification = "identification_access_token"
+
+# question is a question that you want to ask the ChatBot
+question = "Is this plant edible?"
+# model is a parameter that controls the model used for generating the answer. List of models can be found in the documentation.
+model = "gpt-3.5-turbo.demo"
+# You can specify an app name that will be used for chat-bot to specify who is he
+app_name = "my_app"
+# You can specify a prompt that will be used together with our prompt to generate the answer.
+prompt = "You are an assistant for a plant identification app. Please answer the user's question."
+# Temperature is a parameter that controls the randomness of the model.
+# The higher the temperature, the more random the output.
+temperature = 0.0
+
+# The configuration parameters: model, app_name, prompt, temperature are optional
+# and can be specified only for the first question.
+conversation: Conversation = api.ask_question(
+    identification,
+    question,
+    model=model,
+    app_name=app_name,
+    prompt=prompt,
+    temperature=temperature,
+)
+
+# You can set a conversation's feedback(JSON)
+api.conversation_feedback(identification, {'rating': 5, 'comment': 'Great conversation!'})
+
+# You can retrieve the conversation later
+
+
+# You can also delete the conversation
+api.delete_conversation(identification)
+```
+
+#### get_conversation
+
+```python
+from kindwise import PlantApi, Conversation
+
+api = PlantApi(api_key='your_api_key')
+
+# Firstly you need to have an access_token of identification about which you want to ask the question
+identification = "identification_access_token"
+
+conversation: Conversation = api.get_conversation(identification)
+```
+
+#### conversation_feedback
+
+```python
+from kindwise import PlantApi, Conversation
+
+api = PlantApi(api_key='your_api_key')
+
+# Firstly you need to have an access_token of identification about which you want to ask the question
+identification = "identification_access_token"
+
+# You can set a conversation's feedback(JSON)
+api.conversation_feedback(identification, {'rating': 5, 'comment': 'Great conversation!'})
+```
+
+#### delete_conversation
+
+```python
+from kindwise import PlantApi, Conversation
+
+api = PlantApi(api_key='your_api_key')
+
+# Firstly you need to have an access_token of identification about which you want to ask the question
+identification = "identification_access_token"
+
+# You can also delete the conversation
+api.delete_conversation(identification)
 ```
