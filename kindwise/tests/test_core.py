@@ -1,7 +1,7 @@
 import base64
 import enum
 import io
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import PurePath, Path
 
 import pytest
