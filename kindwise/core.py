@@ -1,5 +1,6 @@
 import abc
 import base64
+import enum
 import io
 import json
 from datetime import datetime
@@ -281,6 +282,8 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
             raise ValueError(f'Limit must be positive integer.')
         if kb_type is None:
             kb_type = self.default_kb_type
+        if isinstance(kb_type, enum.Enum):
+            kb_type = kb_type.value
         url = f'{self.kb_api_url}/{kb_type}/name_search{self._build_query(query=query, limit=limit, language=language)}'
         response = self._make_api_call(url, 'GET')
         if not response.ok:
@@ -292,6 +295,8 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
     ) -> dict:
         if kb_type is None:
             kb_type = self.default_kb_type
+        if isinstance(kb_type, enum.Enum):
+            kb_type = kb_type.value
         url = f'{self.kb_api_url}/{kb_type}/{access_token}{self._build_query(language=language, details=details)}'
         response = self._make_api_call(url, 'GET')
         if not response.ok:

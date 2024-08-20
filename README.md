@@ -16,7 +16,7 @@ API without our SDK, the documentation can be found on the following links:
 ### Install
 
 ```bash
-pip install kindwise
+pip install kindwise-api-client
 ```
 
 ### API key
