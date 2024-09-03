@@ -68,5 +68,40 @@
     "localized": false,
     "license": true,
     "description": "list of more urls of representative images"
+  },
+  {
+    "name": "description",
+    "type": "string",
+    "localized": false,
+    "license": false,
+    "description": "short description by kindwise"
+  },
+  {
+    "name": "treatment",
+    "type": "dict",
+    "localized": false,
+    "license": false,
+    "description": "treatment instructions by kindwise in biological, chemical, prevention categories"
+  },
+  {
+    "name": "symptoms",
+    "type": "dict",
+    "localized": false,
+    "license": false,
+    "description": "description of symptoms by kindwise"
+  },
+  {
+    "name": "severity",
+    "type": "string",
+    "localized": false,
+    "license": false,
+    "description": "static description of seriousness of the disease by kindwise"
+  },
+  {
+    "name": "spreading",
+    "type": "string",
+    "localized": false,
+    "license": false,
+    "description": "description of how the diseases spreads by kindwise"
   }
 ]

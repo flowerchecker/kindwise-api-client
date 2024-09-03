@@ -61,5 +61,40 @@
     "localized": false,
     "license": true,
     "description": "list of more urls of representative images"
+  },
+  {
+    "name": "red_list",
+    "type": "string",
+    "localized": false,
+    "license": false,
+    "description": "conservation status and extinction risk from IUCN Red List of Threatened Species"
+  },
+  {
+    "name": "synonyms",
+    "type": "list",
+    "localized": false,
+    "license": false,
+    "description": "other names of the plant"
+  },
+  {
+    "name": "danger",
+    "type": "list",
+    "localized": false,
+    "license": false,
+    "description": "tags suggesting the danger of the insect, possible values:\nharmless to human health\nbites or stings\nbites pets\ndisease transmission\nrash or skin irritation\nallergenic\nnon-venomous\nmildly venomous\nhighly venomous"
+  },
+  {
+    "name": "danger_description",
+    "type": "string",
+    "localized": false,
+    "license": false,
+    "description": "short description of the danger of the insect"
+  },
+  {
+    "name": "role",
+    "type": "list",
+    "localized": false,
+    "license": false,
+    "description": "tags suggesting the role of the insect in the environment and its interaction with humans, possible values:\nbeneficial\npollinator\nagriculture or garden pest\nhousehold pest\nwood destroying"
   }
 ]
