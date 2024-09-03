@@ -18,7 +18,6 @@ from kindwise.models import (
     ResultEvaluation,
     Classification,
     Suggestion,
-    Conversation,
 )
 
 
@@ -262,7 +261,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
         max_image_size: int | None = 1500,
         as_dict: bool = False,
         extra_get_params: str | dict[str, str] = None,
-        extra_post_params: str = None,
+        extra_post_params: str | dict[str, dict[str, str]] | dict[str, str] = None,
     ) -> PlantIdentification | RawPlantIdentification | HealthAssessment | dict:
         identification = super().identify(
             image=image,
