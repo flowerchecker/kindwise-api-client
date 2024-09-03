@@ -16,15 +16,20 @@ def test_requests_to_crop_server(api_key):
 def test_available_details(api_key):
     expected_view_names = {
         'common_names',
-        'type',
-        'wiki_url',
-        'wiki_description',
-        'taxonomy',
+        'description',
         'eppo_code',
+        'eppo_regulation_status',
         'gbif_id',
         'image',
         'images',
-        'eppo_regulation_status',
+        'severity',
+        'spreading',
+        'symptoms',
+        'taxonomy',
+        'treatment',
+        'type',
+        'wiki_description',
+        'wiki_url',
     }
     expected_license = {'wiki_description', 'image', 'images'}
     expected_localized = {'common_names', 'wiki_url', 'wiki_description'}

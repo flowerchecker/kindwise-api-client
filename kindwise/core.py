@@ -152,6 +152,8 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
             else:
                 raise ValueError(f'Invalid date_time format {date_time=} {type(date_time)=}')
         if extra_post_params is not None:
+            if 'suggestion_filter' in extra_post_params and isinstance(extra_post_params['suggestion_filter'], str):
+                extra_post_params['suggestion_filter'] = {'classification': extra_post_params['suggestion_filter']}
             payload.update(extra_post_params)
         return payload
 
