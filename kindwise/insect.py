@@ -139,13 +139,13 @@ class InsectApi(KindwiseApi[InsectIdentification, InsectKBType]):
         return settings.APP_DIR / 'resources' / f'views.insect.json'
 
     def ask_question(
-            self,
-            identification: Identification | str | int,
-            question: str,
-            model: str = None,
-            app_name: str = None,
-            prompt: str = None,
-            temperature: float = None,
-            as_dict: bool = False,
+        self,
+        identification: Identification | str | int,
+        question: str,
+        model: str = None,
+        app_name: str = None,
+        prompt: str = None,
+        temperature: float = None,
+        as_dict: bool = False,
     ) -> Conversation:
         raise NotImplementedError('Asking questions is currently not supported by insect.id')
