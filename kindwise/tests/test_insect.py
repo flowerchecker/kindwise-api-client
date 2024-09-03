@@ -10,14 +10,19 @@ def test_requests_to_insect_server(api_key):
 def test_available_details(api_key):
     expected_view_names = {
         'common_names',
-        'url',
+        'danger',
+        'danger_description',
         'description',
-        'taxonomy',
-        'rank',
         'gbif_id',
-        'inaturalist_id',
         'image',
         'images',
+        'inaturalist_id',
+        'rank',
+        'red_list',
+        'role',
+        'synonyms',
+        'taxonomy',
+        'url',
     }
     expected_license = {'description', 'image', 'images'}
     expected_localized = {'common_names', 'url', 'description'}

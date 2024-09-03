@@ -888,19 +888,25 @@ def test_requests_to_plant_server(api: PlantApi, image_path):
 
 def test_available_details(api):
     expected_view_names = {
+        'best_light_condition',
+        'best_soil_type',
+        'best_watering',
         'common_names',
-        'url',
+        'common_uses',
+        'cultural_significance',
         'description',
-        'taxonomy',
-        'rank',
-        'name_authority',
+        'edible_parts',
         'gbif_id',
-        'inaturalist_id',
         'image',
         'images',
-        'synonyms',
-        'edible_parts',
+        'inaturalist_id',
+        'name_authority',
         'propagation_methods',
+        'rank',
+        'synonyms',
+        'taxonomy',
+        'toxicity',
+        'url',
         'watering',
     }
     expected_license = {'description', 'image', 'images'}
