@@ -19,6 +19,12 @@ API without our SDK, the documentation can be found on the following links:
 pip install kindwise-api-client
 ```
 
+If you want to use the router offline classifier:
+
+```
+pip install kindwise-api-client[router]
+```
+
 ### API key
 
 The API key serves to identify your account and is required to make requests to the API. Get API key at
@@ -519,4 +525,26 @@ identification = "identification_access_token"
 
 # You can also delete the conversation
 api.delete_conversation(identification)
+```
+
+### Router
+If you are not sure which API should be used to process your images, you can
+use offline the **Router** model available in 3 sizes (`tiny`, `small`, and `base`).
+
+```
+from kindwise import Router, RouterSize
+
+image_path = 'path/to/your/image.jpg'
+router = Router(RouterSize.BASE, device='cpu')
+print(router.identify(image_path).simple)
+
+# {
+#   'plant': 0.4546036422252655,
+#   'unhealthy_plant': 0.3136405646800995,
+#   'mushroom': 0.29126274585723877,
+#   'crop': 0.19530339539051056,
+#   'insect': 0.0014414122560992837,
+#   'human': 0.0003646785335149616
+# }
+
 ```

@@ -12,3 +12,4 @@ from kindwise.models import (
 )
 from kindwise.mushroom import MushroomApi, MushroomKBType
 from kindwise.plant import HealthAssessment, PlantApi, PlantIdentification, PlantKBType, RawPlantIdentification
+from kindwise.router import Router, RouterSize
