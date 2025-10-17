@@ -5,12 +5,12 @@ import io
 import json
 from datetime import datetime
 from pathlib import Path, PurePath
-from typing import BinaryIO, Any, Generic, TypeVar
+from typing import Any, BinaryIO, Generic, TypeVar
 
 import requests
 from PIL import Image
 
-from kindwise.models import Identification, UsageInfo, SearchResult, Conversation
+from kindwise.models import Conversation, Identification, SearchResult, UsageInfo
 
 IdentificationType = TypeVar('IdentificationType')
 KBType = TypeVar('KBType')
