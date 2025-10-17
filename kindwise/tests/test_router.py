@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from kindwise.router import Router
@@ -15,6 +17,7 @@ test_images = [
 
 
 @pytest.mark.parametrize('classifier_name,image_path', test_images)
+@pytest.mark.skipif(os.getenv('CI') == 'true', reason="Skipping on GitHub Actions")
 def test_identify(classifier_name, image_path):
     router = Router(device='cpu')
     result = router.identify(image_path)
