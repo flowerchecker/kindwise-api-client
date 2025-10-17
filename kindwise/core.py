@@ -58,45 +58,48 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         return response
 
     @staticmethod
-    def _encode_image(image: PurePath | str | bytes | BinaryIO | Image.Image, max_image_size: int | None) -> str:
-        def get_image_from_url() -> None | bytes:
+    def _load_image_buffer(image: PurePath | str | bytes | BinaryIO | Image.Image) -> io.BytesIO:
+        def get_from_url() -> None | bytes:
             if not isinstance(image, str) or not image.startswith(('http://', 'https://')):
                 return None
             response = requests.get(image)
             if not response.ok:
                 return None
-            return response.content
+            return io.BytesIO(response.content)
 
-        if _img := get_image_from_url():
-            image = _img
-        elif isinstance(image, str) and len(image) <= 250:  # first try str as a path to a file
+        if _img := get_from_url():
+            return _img
+        if isinstance(image, str) and len(image) <= 250:  # first try str as a path to a file
             image = Path(image)
         if isinstance(image, PurePath):  # Path
             with open(image, 'rb') as f:
-                buffer = io.BytesIO(f.read())
-        elif hasattr(image, 'read') and hasattr(image, 'seek') and hasattr(image, 'mode'):  # BinaryIO
+                return io.BytesIO(f.read())
+        if hasattr(image, 'read') and hasattr(image, 'seek') and hasattr(image, 'mode'):  # BinaryIO
             if 'rb' not in image.mode:  # what will it do if this is not there
                 raise ValueError(f'Invalid file mode {image.mode=}, expected "rb"(binary mode)')
             image.seek(0)
-            buffer = io.BytesIO(image.read())
-        elif isinstance(image, Image.Image):
+            return io.BytesIO(image.read())
+        if isinstance(image, Image.Image):
             buffer = io.BytesIO()
             image.save(buffer, format='JPEG')
-            # buffer.seek(0)
-        else:  # str | bytes:
+            return buffer
+        # str | bytes:
 
-            def is_base64():
-                try:
-                    byte_image = image if isinstance(image, bytes) else image.encode('ascii')
-                    return base64.b64encode(base64.b64decode(byte_image)) == byte_image
-                except Exception:
-                    return False
+        def is_base64():
+            try:
+                byte_image = image if isinstance(image, bytes) else image.encode('ascii')
+                return base64.b64encode(base64.b64decode(byte_image)) == byte_image
+            except Exception:
+                return False
 
-            if is_base64():
-                buffer = io.BytesIO(base64.b64decode(image))
-            else:
-                sb_bytes = bytes(image, 'ascii') if isinstance(image, str) else image
-                buffer = io.BytesIO(sb_bytes)
+        if is_base64():
+            return io.BytesIO(base64.b64decode(image))
+        sb_bytes = bytes(image, 'ascii') if isinstance(image, str) else image
+        return io.BytesIO(sb_bytes)
+
+    @staticmethod
+    def _encode_image(image: PurePath | str | bytes | BinaryIO | Image.Image, max_image_size: int | None) -> str:
+        buffer = KindwiseApi._load_image_buffer(image)
 
         def resize_image(file) -> bytes:
             img = Image.open(file)
