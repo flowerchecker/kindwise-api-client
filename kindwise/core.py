@@ -52,7 +52,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
             'Content-Type': 'application/json',
             'Api-Key': self.api_key,
         }
-        response = requests.request(method, url, json=data, headers=headers)
+        response = requests.request(method, url, json=data, headers=headers, timeout=60.0)
         if not response.ok:
             raise ValueError(f'Error while making an API call: {response.status_code=} {response.text=}')
         return response
