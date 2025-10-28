@@ -47,12 +47,12 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
     def conversation_feedback_url(self, token: str):
         return f'{self.identification_url}/{token}/conversation/feedback'
 
-    def _make_api_call(self, url, method: str, data: dict | None = None):
+    def _make_api_call(self, url, method: str, data: dict | None = None, timeout: float = 60.0):
         headers = {
             'Content-Type': 'application/json',
             'Api-Key': self.api_key,
         }
-        response = requests.request(method, url, json=data, headers=headers, timeout=60.0)
+        response = requests.request(method, url, json=data, headers=headers, timeout=timeout)
         if not response.ok:
             raise ValueError(f'Error while making an API call: {response.status_code=} {response.text=}')
         return response
