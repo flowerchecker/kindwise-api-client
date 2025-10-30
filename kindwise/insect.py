@@ -97,6 +97,7 @@ class InsectApi(KindwiseApi[InsectIdentification, InsectKBType]):
         as_dict: bool = False,
         extra_get_params: str | dict[str, str] = None,
         extra_post_params: str | dict[str, dict[str, str]] | dict[str, str] = None,
+        timeout=60.0,
     ) -> InsectIdentification | dict:
         identification = super().identify(
             image=image,
@@ -111,6 +112,7 @@ class InsectApi(KindwiseApi[InsectIdentification, InsectKBType]):
             as_dict=True,
             extra_get_params=extra_get_params,
             extra_post_params=extra_post_params,
+            timeout=timeout,
         )
         if as_dict:
             return identification
@@ -124,6 +126,7 @@ class InsectApi(KindwiseApi[InsectIdentification, InsectKBType]):
         language: str | list[str] = None,
         as_dict: bool = False,
         extra_get_params: str | dict[str, str] = None,
+        timeout=60.0,
     ) -> InsectIdentification | dict:
         identification = super().get_identification(
             token=token,
@@ -131,6 +134,7 @@ class InsectApi(KindwiseApi[InsectIdentification, InsectKBType]):
             language=language,
             as_dict=True,
             extra_get_params=extra_get_params,
+            timeout=timeout,
         )
         return identification if as_dict else InsectIdentification.from_dict(identification)
 
@@ -147,5 +151,6 @@ class InsectApi(KindwiseApi[InsectIdentification, InsectKBType]):
         prompt: str = None,
         temperature: float = None,
         as_dict: bool = False,
+        timeout=60.0,
     ) -> Conversation:
         raise NotImplementedError('Asking questions is currently not supported by insect.id')

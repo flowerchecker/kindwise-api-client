@@ -73,5 +73,6 @@ class CropHealthApi(KindwiseApi[CropIdentification, CropHealthKBType]):
         prompt: str = None,
         temperature: float = None,
         as_dict: bool = False,
+        timeout=60.0,
     ) -> Conversation:
         raise NotImplementedError('Asking questions is currently not supported by crop.health.')

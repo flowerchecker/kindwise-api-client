@@ -101,6 +101,7 @@ class MushroomApi(KindwiseApi[Identification, MushroomKBType]):
         as_dict: bool = False,
         extra_get_params: str | dict[str, str] = None,
         extra_post_params: str | dict[str, dict[str, str]] | dict[str, str] = None,
+        timeout=60.0,
     ) -> MushroomIdentification | dict:
         identification = super().identify(
             image=image,
@@ -115,6 +116,7 @@ class MushroomApi(KindwiseApi[Identification, MushroomKBType]):
             as_dict=True,
             extra_get_params=extra_get_params,
             extra_post_params=extra_post_params,
+            timeout=timeout,
         )
         if as_dict:
             return identification
@@ -128,6 +130,7 @@ class MushroomApi(KindwiseApi[Identification, MushroomKBType]):
         language: str | list[str] = None,
         as_dict: bool = False,
         extra_get_params: str | dict[str, str] = None,
+        timeout=60.0,
     ) -> MushroomIdentification | dict:
         identification = super().get_identification(
             token=token,
@@ -135,6 +138,7 @@ class MushroomApi(KindwiseApi[Identification, MushroomKBType]):
             language=language,
             as_dict=True,
             extra_get_params=extra_get_params,
+            timeout=timeout,
         )
         return identification if as_dict else MushroomIdentification.from_dict(identification)
 
@@ -151,5 +155,6 @@ class MushroomApi(KindwiseApi[Identification, MushroomKBType]):
         prompt: str = None,
         temperature: float = None,
         as_dict: bool = False,
+        timeout=60.0,
     ) -> Conversation:
         raise NotImplementedError('Asking questions is currently not supported by mushroom.id')
