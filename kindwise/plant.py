@@ -262,6 +262,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
         as_dict: bool = False,
         extra_get_params: str | dict[str, str] = None,
         extra_post_params: str | dict[str, dict[str, str]] | dict[str, str] = None,
+        timeout=60.0,
     ) -> PlantIdentification | RawPlantIdentification | HealthAssessment | dict:
         identification = super().identify(
             image=image,
@@ -279,6 +280,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
             as_dict=True,
             extra_get_params=extra_get_params,
             extra_post_params=extra_post_params,
+            timeout=timeout,
         )
         if as_dict:
             return identification
@@ -296,6 +298,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
         language: str | list[str] = None,
         as_dict: bool = False,
         extra_get_params: str | dict[str, str] = None,
+        timeout=60.0,
     ) -> PlantIdentification | dict:
         identification = super().get_identification(
             token=token,
@@ -303,6 +306,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
             language=language,
             as_dict=True,
             extra_get_params=extra_get_params,
+            timeout=timeout,
         )  # todo might be RawPlantIdentification
         return identification if as_dict else PlantIdentification.from_dict(identification)
 
@@ -335,6 +339,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
         as_dict: bool = False,
         extra_get_params: str | dict[str, str] = None,
         extra_post_params: str = None,
+        timeout=60.0,
     ) -> HealthAssessment | dict:
         query = self._build_query(
             details=details,
@@ -353,7 +358,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
             max_image_size=max_image_size,
             extra_post_params=extra_post_params,
         )
-        response = self._make_api_call(url, 'POST', payload)
+        response = self._make_api_call(url, 'POST', payload, timeout=timeout)
         if not response.ok:
             raise ValueError(f'Error while creating a health assessment: {response.status_code=} {response.text=}')
         health_assessment = response.json()
@@ -367,19 +372,24 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
         full_disease_list: bool = False,
         as_dict: bool = False,
         extra_get_params: str | dict[str, str] = None,
+        timeout=60.0,
     ) -> HealthAssessment | dict:
         query = self._build_query(
             details=details, language=language, full_disease_list=full_disease_list, extra_get_params=extra_get_params
         )
         url = f'{self.identification_url}/{token}{query}'
-        response = self._make_api_call(url, 'GET')
+        response = self._make_api_call(url, 'GET', timeout=timeout)
         if not response.ok:
             raise ValueError(f'Error while getting a health assessment: {response.status_code=} {response.text=}')
         health_assessment = response.json()
         return health_assessment if as_dict else HealthAssessment.from_dict(health_assessment)
 
-    def delete_health_assessment(self, identification: HealthAssessment | str | int) -> bool:
-        return self.delete_identification(identification)
+    def delete_health_assessment(
+        self,
+        identification: HealthAssessment | str | int,
+        timeout=60.0,
+    ) -> bool:
+        return self.delete_identification(identification, timeout=timeout)
 
     @property
     def views_path(self) -> Path:

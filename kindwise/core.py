@@ -174,6 +174,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         max_image_size: int | None = 1500,
         extra_get_params: str | dict[str | Any] = None,
         extra_post_params: dict[str, Any] = None,
+        timeout: float = 60.0,
         **kwargs,
     ) -> IdentificationType | dict:
         payload = self._build_payload(
@@ -190,7 +191,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
             details=details, language=language, asynchronous=asynchronous, extra_get_params=extra_get_params, **kwargs
         )
         url = f'{self.identification_url}{query}'
-        response = self._make_api_call(url, 'POST', payload)
+        response = self._make_api_call(url, 'POST', payload, timeout=timeout)
         data = response.json()
         return data if as_dict else self.identification_class.from_dict(data)
 
@@ -232,26 +233,35 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         language: str | list[str] = None,
         extra_get_params: str | dict[str, str] = None,
         as_dict: bool = False,
+        timeout: float = 60.0,
     ) -> IdentificationType | dict:
         query = self._build_query(details=details, language=language, extra_get_params=extra_get_params)
         url = f'{self.identification_url}/{token}{query}'
-        response = self._make_api_call(url, 'GET')
+        response = self._make_api_call(url, 'GET', timeout=timeout)
         data = response.json()
         return data if as_dict else self.identification_class.from_dict(data)
 
-    def delete_identification(self, identification: IdentificationType | str | int) -> bool:
+    def delete_identification(
+        self,
+        identification: IdentificationType | str | int,
+        timeout: float = 60.0,
+    ) -> bool:
         token = identification.access_token if isinstance(identification, Identification) else identification
         url = f'{self.identification_url}/{token}'
-        self._make_api_call(url, 'DELETE')
+        self._make_api_call(url, 'DELETE', timeout=timeout)
         return True
 
-    def usage_info(self, as_dict: bool = False) -> UsageInfo | dict:
-        response = self._make_api_call(self.usage_info_url, 'GET')
+    def usage_info(self, as_dict: bool = False, timeout: float = 60.0) -> UsageInfo | dict:
+        response = self._make_api_call(self.usage_info_url, 'GET', timeout=timeout)
         data = response.json()
         return data if as_dict else UsageInfo.from_dict(data)
 
     def feedback(
-        self, identification: IdentificationType | str | int, comment: str | None = None, rating: int | None = None
+        self,
+        identification: IdentificationType | str | int,
+        comment: str | None = None,
+        rating: int | None = None,
+        timeout: float = 60.0,
     ) -> bool:
         token = identification.access_token if isinstance(identification, Identification) else identification
         if comment is None and rating is None:
@@ -261,7 +271,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
             data['comment'] = comment
         if rating is not None:
             data['rating'] = rating
-        self._make_api_call(self.feedback_url(token), 'POST', data)
+        self._make_api_call(self.feedback_url(token), 'POST', data, timeout=timeout)
         return True
 
     @property
@@ -280,6 +290,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         language: str = None,
         kb_type: KBType | str = None,
         as_dict=False,
+        timeout: float = 60.0,
     ) -> SearchResult | dict:
         if not query:
             raise ValueError('Query parameter q must be provided')
@@ -290,20 +301,25 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         if isinstance(kb_type, enum.Enum):
             kb_type = kb_type.value
         url = f'{self.kb_api_url}/{kb_type}/name_search{self._build_query(query=query, limit=limit, language=language)}'
-        response = self._make_api_call(url, 'GET')
+        response = self._make_api_call(url, 'GET', timeout=timeout)
         if not response.ok:
             raise ValueError(f'Error while searching knowledge base: {response.status_code=} {response.text=}')
         return response.json() if as_dict else SearchResult.from_dict(response.json())
 
     def get_kb_detail(
-        self, access_token: str, details: str | list[str], language: str = None, kb_type: KBType | str = None
+        self,
+        access_token: str,
+        details: str | list[str],
+        language: str = None,
+        kb_type: KBType | str = None,
+        timeout: float = 60.0,
     ) -> dict:
         if kb_type is None:
             kb_type = self.default_kb_type
         if isinstance(kb_type, enum.Enum):
             kb_type = kb_type.value
         url = f'{self.kb_api_url}/{kb_type}/{access_token}{self._build_query(language=language, details=details)}'
-        response = self._make_api_call(url, 'GET')
+        response = self._make_api_call(url, 'GET', timeout=timeout)
         if not response.ok:
             raise ValueError(f'Error while getting knowledge base detail: {response.status_code=} {response.text=}')
         return response.json()
@@ -317,27 +333,30 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         prompt: str = None,
         temperature: float = None,
         as_dict: bool = False,
+        timeout: float = 60.0,
     ) -> Conversation:
         token = identification.access_token if isinstance(identification, Identification) else identification
         data = {'question': question}
         for key, value in [('model', model), ('app_name', app_name), ('prompt', prompt), ('temperature', temperature)]:
             if value is not None:
                 data[key] = value
-        response = self._make_api_call(self.conversation_url(token), 'POST', data)
+        response = self._make_api_call(self.conversation_url(token), 'POST', data, timeout=timeout)
         data = response.json()
         return data if as_dict else Conversation.from_dict(data)
 
-    def get_conversation(self, identification: IdentificationType | str | int) -> Conversation:
+    def get_conversation(self, identification: IdentificationType | str | int, timeout: float = 60.0) -> Conversation:
         token = identification.access_token if isinstance(identification, Identification) else identification
-        response = self._make_api_call(self.conversation_url(token), 'GET')
+        response = self._make_api_call(self.conversation_url(token), 'GET', timeout=timeout)
         return Conversation.from_dict(response.json())
 
-    def delete_conversation(self, identification: IdentificationType | str | int) -> bool:
+    def delete_conversation(self, identification: IdentificationType | str | int, timeout: float = 60.0) -> bool:
         token = identification.access_token if isinstance(identification, Identification) else identification
-        self._make_api_call(self.conversation_url(token), 'DELETE')
+        self._make_api_call(self.conversation_url(token), 'DELETE', timeout=timeout)
         return True
 
-    def conversation_feedback(self, identification: IdentificationType | str | int, feedback: str | int | dict) -> bool:
+    def conversation_feedback(
+        self, identification: IdentificationType | str | int, feedback: str | int | dict, timeout: float = 60.0
+    ) -> bool:
         token = identification.access_token if isinstance(identification, Identification) else identification
-        self._make_api_call(self.conversation_feedback_url(token), 'POST', {'feedback': feedback})
+        self._make_api_call(self.conversation_feedback_url(token), 'POST', {'feedback': feedback}, timeout=timeout)
         return True
