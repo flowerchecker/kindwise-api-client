@@ -62,12 +62,14 @@ class InsectApi(KindwiseApi[InsectIdentification, InsectKBType]):
     host = 'https://insect.kindwise.com'
     default_kb_type = InsectKBType.INSECT
 
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str = None, host: str = None):
         api_key = settings.INSECT_API_KEY if api_key is None else api_key
         if api_key is None:
             raise ValueError(
                 'API key is required, set it in init method of class or in .env file under "INSECT_API_KEY" key'
             )
+        if host:
+            self.host = host
         super().__init__(api_key)
 
     @property

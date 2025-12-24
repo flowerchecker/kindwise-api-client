@@ -40,12 +40,14 @@ class CropHealthApi(KindwiseApi[CropIdentification, CropHealthKBType]):
     default_kb_type = CropHealthKBType.CROP
     identification_class = CropIdentification
 
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str = None, host: str = None):
         api_key = settings.CROP_HEALTH_API_KEY if api_key is None else api_key
         if api_key is None:
             raise ValueError(
                 'API key is required, set it in init method of class or in .env file under "CROP_HEALTH_API_KEY" key'
             )
+        if host:
+            self.host = host
         super().__init__(api_key)
 
     @property
