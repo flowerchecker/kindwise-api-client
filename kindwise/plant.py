@@ -56,9 +56,9 @@ class PlantInput(Input):
             latitude=data['latitude'],
             longitude=data['longitude'],
             similar_images=data['similar_images'],
-            classification_level=ClassificationLevel(data['classification_level'])
-            if 'classification_level' in data
-            else None,
+            classification_level=(
+                ClassificationLevel(data['classification_level']) if 'classification_level' in data else None
+            ),
             classification_raw=data.get('classification_raw', False),
         )
 
@@ -96,9 +96,11 @@ class TaxaSpecificSuggestion:
         return cls(
             genus=[Suggestion.from_dict(suggestion) for suggestion in data['genus']],
             species=[Suggestion.from_dict(suggestion) for suggestion in data['species']],
-            infraspecies=None
-            if 'infraspecies' not in data
-            else [Suggestion.from_dict(suggestion) for suggestion in data['infraspecies']],
+            infraspecies=(
+                None
+                if 'infraspecies' not in data
+                else [Suggestion.from_dict(suggestion) for suggestion in data['infraspecies']]
+            ),
         )
 
 
@@ -316,7 +318,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
         **kwargs,
     ):
         query = super()._build_query(**kwargs)
-        disease_query = f'full_disease_list=true' if full_disease_list else ''
+        disease_query = 'full_disease_list=true' if full_disease_list else ''
         if disease_query == '':
             return query
 
@@ -393,9 +395,9 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
 
     @property
     def views_path(self) -> Path:
-        return settings.APP_DIR / 'resources' / f'views.plant.json'
+        return settings.APP_DIR / 'resources' / 'views.plant.json'
 
     @classmethod
     def available_disease_details(cls) -> list[dict[str, any]]:
-        with open(settings.APP_DIR / 'resources' / f'views.plant.disease.json') as f:
+        with open(settings.APP_DIR / 'resources' / 'views.plant.disease.json') as f:
             return json.load(f)

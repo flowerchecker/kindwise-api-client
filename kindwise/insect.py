@@ -140,7 +140,7 @@ class InsectApi(KindwiseApi[InsectIdentification, InsectKBType]):
 
     @property
     def views_path(self) -> Path:
-        return settings.APP_DIR / 'resources' / f'views.insect.json'
+        return settings.APP_DIR / 'resources' / 'views.insect.json'
 
     def ask_question(
         self,

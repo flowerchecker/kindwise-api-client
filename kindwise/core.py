@@ -25,18 +25,15 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
 
     @property
     @abc.abstractmethod
-    def identification_url(self):
-        ...
+    def identification_url(self): ...
 
     @property
     @abc.abstractmethod
-    def usage_info_url(self):
-        ...
+    def usage_info_url(self): ...
 
     @property
     @abc.abstractmethod
-    def kb_api_url(self):
-        ...
+    def kb_api_url(self): ...
 
     def feedback_url(self, token: str):
         return f'{self.identification_url}/{token}/feedback'
@@ -218,7 +215,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
                 extra_get_params = '&'.join(f'{k}={v}' for k, v in extra_get_params.items())
             if extra_get_params.startswith('?'):
                 extra_get_params = extra_get_params[1:] + '&'
-        async_query = f'async=true&' if asynchronous else ''
+        async_query = 'async=true&' if asynchronous else ''
         query = '' if query is None else f'q={query}&'
         limit = '' if limit is None else f'limit={limit}&'
         query = f'?{query}{limit}{details_query}{language_query}{async_query}{extra_get_params}'
@@ -276,8 +273,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
 
     @property
     @abc.abstractmethod
-    def views_path(self) -> Path:
-        ...
+    def views_path(self) -> Path: ...
 
     def available_details(self) -> list[dict[str, any]]:
         with open(self.views_path) as f:
@@ -295,7 +291,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         if not query:
             raise ValueError('Query parameter q must be provided')
         if isinstance(limit, int) and limit < 1:
-            raise ValueError(f'Limit must be positive integer.')
+            raise ValueError('Limit must be positive integer.')
         if kb_type is None:
             kb_type = self.default_kb_type
         if isinstance(kb_type, enum.Enum):

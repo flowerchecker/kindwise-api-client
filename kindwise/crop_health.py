@@ -58,7 +58,7 @@ class CropHealthApi(KindwiseApi[CropIdentification, CropHealthKBType]):
 
     @property
     def views_path(self) -> Path:
-        return settings.APP_DIR / 'resources' / f'views.crop_health.disease.json'
+        return settings.APP_DIR / 'resources' / 'views.crop_health.disease.json'
 
     @property
     def kb_api_url(self):

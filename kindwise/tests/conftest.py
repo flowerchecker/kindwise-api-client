@@ -110,7 +110,7 @@ def run_test_requests_to_server(api, system_name, image_path, identification_typ
         try:
             search_results: SearchResult = api.search(entity_name, limit=1)
         except NotImplementedError:
-            print(f'Skipped KB api check ')
+            print('Skipped KB api check ')
         else:
             print(f'Search results for {entity_name=}, limit=1 {system_name=}:')
             print(search_results)

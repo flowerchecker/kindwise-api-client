@@ -46,7 +46,7 @@ class TestApi(KindwiseApi[Identification, TestKBType]):
 
     @property
     def views_path(self) -> Path:
-        return settings.APP_DIR / 'resources' / f'views.insect.json'
+        return settings.APP_DIR / 'resources' / 'views.insect.json'
 
     @property
     def kb_api_url(self):

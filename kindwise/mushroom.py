@@ -80,7 +80,7 @@ class MushroomApi(KindwiseApi[Identification, MushroomKBType]):
 
     @property
     def views_path(self) -> Path:
-        return settings.APP_DIR / 'resources' / f'views.mushroom.json'
+        return settings.APP_DIR / 'resources' / 'views.mushroom.json'
 
     @property
     def kb_api_url(self):
