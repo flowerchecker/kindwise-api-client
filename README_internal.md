@@ -3,7 +3,8 @@
 ```bash
 conda env create
 conda activate kindowse-sdk
-poetry install
+pipx install poetry==2.2.1
+poetry install --extras router
 pre-commit install
 pre-commit install --hook-type commit-msg
 ```
