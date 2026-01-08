@@ -25,6 +25,12 @@ If you want to use the router offline classifier:
 pip install kindwise-api-client[router]
 ```
 
+If you want to use async interface:
+
+```
+pip install kindwise-api-client[async]
+```
+
 ### API key
 
 The API key serves to identify your account and is required to make requests to the API. Get API key at
@@ -547,4 +553,33 @@ print(router.identify(image_path).simple)
 #   'human': 0.0003646785335149616
 # }
 
+```
+
+### Async Interface
+
+The same available methods are also available in async interface. Here is an example of how to use it.
+
+```python
+from kindwise import AsyncPlantApi, PlantIdentification, UsageInfo
+
+# initialize plant.id api
+# "PLANT_API_KEY" environment variable can be set instead of specifying api_key
+api = AsyncPlantApi(api_key='your_api_key')
+# get usage information
+usage: UsageInfo = await api.usage_info()
+
+# identify plant by image
+latitude_longitude = (49.20340, 16.57318)
+# pass the image as a path
+image_path = 'path/to/plant_image.jpg'
+# make identification
+identification: PlantIdentification = await api.identify(image_path, latitude_longitude=latitude_longitude)
+
+# get identification by a token with changed views
+# this method can be used to modify additional information in identification or to get identification from database
+# also works with identification.custom_id
+identification_with_different_views: PlantIdentification = await api.get_identification(identification.access_token)
+
+# delete identification
+await api.delete_identification(identification)  # also works with identification.access_token or identification.custom_id
 ```

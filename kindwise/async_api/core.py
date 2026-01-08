@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path, PurePath
 from typing import Any, BinaryIO, Generic, TypeVar
 
-import pathlib
+import anyio
 import httpx
 from PIL import Image
 
@@ -17,7 +17,7 @@ IdentificationType = TypeVar('IdentificationType')
 KBType = TypeVar('KBType')
 
 
-class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
+class AsyncKindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
     identification_class = Identification
     default_kb_type = None
 
@@ -45,34 +45,34 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
     def conversation_feedback_url(self, token: str):
         return f'{self.identification_url}/{token}/conversation/feedback'
 
-    def _make_api_call(self, url, method: str, data: dict | None = None, timeout: float = 60.0):
+    async def _make_api_call(self, url, method: str, data: dict | None = None, timeout: float = 60.0):
         headers = {
             'Content-Type': 'application/json',
             'Api-Key': self.api_key,
         }
-        with httpx.Client() as client:
-            response = client.request(method, url, json=data, headers=headers, timeout=timeout)
+        async with httpx.AsyncClient() as client:
+            response = await client.request(method, url, json=data, headers=headers, timeout=timeout)
             if response.is_error:
                 raise ValueError(f'Error while making an API call: {response.status_code=} {response.text=}')
             return response
 
     @staticmethod
-    def _load_image_buffer(image: PurePath | str | bytes | BinaryIO | Image.Image) -> io.BytesIO:
-        def get_from_url() -> None | bytes:
+    async def _load_image_buffer(image: PurePath | str | bytes | BinaryIO | Image.Image) -> io.BytesIO:
+        async def get_from_url() -> None | bytes:
             if not isinstance(image, str) or not image.startswith(('http://', 'https://')):
                 return None
-            with httpx.Client() as client:
-                response = client.get(image)
+            async with httpx.AsyncClient() as client:
+                response = await client.get(image)
             if not response.is_success:
                 return None
             return io.BytesIO(response.content)
 
-        if _img := get_from_url():
+        if _img := await get_from_url():
             return _img
         if isinstance(image, str) and len(image) <= 250:  # first try str as a path to a file
             image = Path(image)
         if isinstance(image, PurePath):  # Path
-            return io.BytesIO(pathlib.Path(image).read_bytes())
+            return io.BytesIO(await anyio.Path(image).read_bytes())
         if hasattr(image, 'read') and hasattr(image, 'seek') and hasattr(image, 'mode'):  # BinaryIO
             if 'rb' not in image.mode:  # what will it do if this is not there
                 raise ValueError(f'Invalid file mode {image.mode=}, expected "rb"(binary mode)')
@@ -97,8 +97,8 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         return io.BytesIO(sb_bytes)
 
     @staticmethod
-    def _encode_image(image: PurePath | str | bytes | BinaryIO | Image.Image, max_image_size: int | None) -> str:
-        buffer = KindwiseApi._load_image_buffer(image)
+    async def _encode_image(image: PurePath | str | bytes | BinaryIO | Image.Image, max_image_size: int | None) -> str:
+        buffer = await AsyncKindwiseApi._load_image_buffer(image)
 
         def resize_image(file) -> bytes:
             img = Image.open(file)
@@ -121,7 +121,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         buffer.close()
         return base64.b64encode(img).decode('ascii')
 
-    def _build_payload(
+    async def _build_payload(
         self,
         image: PurePath | str | bytes | BinaryIO | Image.Image | list[str | PurePath | bytes | BinaryIO | Image.Image],
         similar_images: bool = True,
@@ -136,7 +136,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
             image = [image]
 
         payload = {
-            'images': [self._encode_image(img, max_image_size) for img in image],
+            'images': [await self._encode_image(img, max_image_size) for img in image],
             'similar_images': similar_images,
         }
         if latitude_longitude is not None:
@@ -159,7 +159,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
             payload.update(extra_post_params)
         return payload
 
-    def identify(
+    async def identify(
         self,
         image: PurePath | str | bytes | BinaryIO | Image.Image | list[str | PurePath | bytes | BinaryIO | Image.Image],
         details: str | list[str] = None,
@@ -176,7 +176,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         timeout: float = 60.0,
         **kwargs,
     ) -> IdentificationType | dict:
-        payload = self._build_payload(
+        payload = await self._build_payload(
             image,
             similar_images=similar_images,
             latitude_longitude=latitude_longitude,
@@ -190,7 +190,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
             details=details, language=language, asynchronous=asynchronous, extra_get_params=extra_get_params, **kwargs
         )
         url = f'{self.identification_url}{query}'
-        response = self._make_api_call(url, 'POST', payload, timeout=timeout)
+        response = await self._make_api_call(url, 'POST', payload, timeout=timeout)
         data = response.json()
         return data if as_dict else self.identification_class.from_dict(data)
 
@@ -225,7 +225,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
             query = query[:-1]
         return '' if query == '?' else query
 
-    def get_identification(
+    async def get_identification(
         self,
         token: str | int,
         details: str | list[str] = None,
@@ -236,26 +236,26 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
     ) -> IdentificationType | dict:
         query = self._build_query(details=details, language=language, extra_get_params=extra_get_params)
         url = f'{self.identification_url}/{token}{query}'
-        response = self._make_api_call(url, 'GET', timeout=timeout)
+        response = await self._make_api_call(url, 'GET', timeout=timeout)
         data = response.json()
         return data if as_dict else self.identification_class.from_dict(data)
 
-    def delete_identification(
+    async def delete_identification(
         self,
         identification: IdentificationType | str | int,
         timeout: float = 60.0,
     ) -> bool:
         token = identification.access_token if isinstance(identification, Identification) else identification
         url = f'{self.identification_url}/{token}'
-        self._make_api_call(url, 'DELETE', timeout=timeout)
+        await self._make_api_call(url, 'DELETE', timeout=timeout)
         return True
 
-    def usage_info(self, as_dict: bool = False, timeout: float = 60.0) -> UsageInfo | dict:
-        response = self._make_api_call(self.usage_info_url, 'GET', timeout=timeout)
+    async def usage_info(self, as_dict: bool = False, timeout: float = 60.0) -> UsageInfo | dict:
+        response = await self._make_api_call(self.usage_info_url, 'GET', timeout=timeout)
         data = response.json()
         return data if as_dict else UsageInfo.from_dict(data)
 
-    def feedback(
+    async def feedback(
         self,
         identification: IdentificationType | str | int,
         comment: str | None = None,
@@ -270,7 +270,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
             data['comment'] = comment
         if rating is not None:
             data['rating'] = rating
-        self._make_api_call(self.feedback_url(token), 'POST', data, timeout=timeout)
+        await self._make_api_call(self.feedback_url(token), 'POST', data, timeout=timeout)
         return True
 
     @property
@@ -281,7 +281,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         with open(self.views_path) as f:
             return json.load(f)
 
-    def search(
+    async def search(
         self,
         query: str,
         limit: int = None,
@@ -299,12 +299,12 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         if isinstance(kb_type, enum.Enum):
             kb_type = kb_type.value
         url = f'{self.kb_api_url}/{kb_type}/name_search{self._build_query(query=query, limit=limit, language=language)}'
-        response = self._make_api_call(url, 'GET', timeout=timeout)
+        response = await self._make_api_call(url, 'GET', timeout=timeout)
         if not response.is_success:
             raise ValueError(f'Error while searching knowledge base: {response.status_code=} {response.text=}')
         return response.json() if as_dict else SearchResult.from_dict(response.json())
 
-    def get_kb_detail(
+    async def get_kb_detail(
         self,
         access_token: str,
         details: str | list[str],
@@ -317,12 +317,12 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         if isinstance(kb_type, enum.Enum):
             kb_type = kb_type.value
         url = f'{self.kb_api_url}/{kb_type}/{access_token}{self._build_query(language=language, details=details)}'
-        response = self._make_api_call(url, 'GET', timeout=timeout)
+        response = await self._make_api_call(url, 'GET', timeout=timeout)
         if not response.is_success:
             raise ValueError(f'Error while getting knowledge base detail: {response.status_code=} {response.text=}')
         return response.json()
 
-    def ask_question(
+    async def ask_question(
         self,
         identification: IdentificationType | str | int,
         question: str,
@@ -338,27 +338,27 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         for key, value in [('model', model), ('app_name', app_name), ('prompt', prompt), ('temperature', temperature)]:
             if value is not None:
                 data[key] = value
-        response = self._make_api_call(self.conversation_url(token), 'POST', data, timeout=timeout)
+        response = await self._make_api_call(self.conversation_url(token), 'POST', data, timeout=timeout)
         data = response.json()
         return data if as_dict else Conversation.from_dict(data)
 
-    def get_conversation(
+    async def get_conversation(
         self, identification: IdentificationType | str | int, timeout: float = 60.0
     ) -> Conversation:
         token = identification.access_token if isinstance(identification, Identification) else identification
-        response = self._make_api_call(self.conversation_url(token), 'GET', timeout=timeout)
+        response = await self._make_api_call(self.conversation_url(token), 'GET', timeout=timeout)
         return Conversation.from_dict(response.json())
 
-    def delete_conversation(self, identification: IdentificationType | str | int, timeout: float = 60.0) -> bool:
+    async def delete_conversation(self, identification: IdentificationType | str | int, timeout: float = 60.0) -> bool:
         token = identification.access_token if isinstance(identification, Identification) else identification
-        self._make_api_call(self.conversation_url(token), 'DELETE', timeout=timeout)
+        await self._make_api_call(self.conversation_url(token), 'DELETE', timeout=timeout)
         return True
 
-    def conversation_feedback(
+    async def conversation_feedback(
         self, identification: IdentificationType | str | int, feedback: str | int | dict, timeout: float = 60.0
     ) -> bool:
         token = identification.access_token if isinstance(identification, Identification) else identification
-        self._make_api_call(
+        await self._make_api_call(
             self.conversation_feedback_url(token), 'POST', {'feedback': feedback}, timeout=timeout
         )
         return True
