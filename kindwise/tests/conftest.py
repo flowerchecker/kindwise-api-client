@@ -1,14 +1,70 @@
 import os
 import random
+import json
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from httpx import Response
 
 from kindwise import settings
 from kindwise.models import UsageInfo, MessageType, SearchResult
+
+
+class LegacyRequestWrapper:
+    def __init__(self, request):
+        self._request = request
+        self.method = request.method
+        self.url = str(request.url)
+        self.headers = request.headers
+
+    def json(self):
+        return json.loads(self._request.content)
+
+
+class RequestHistoryWrapper:
+    def __init__(self, calls):
+        self._calls = calls
+
+    def pop(self, index=-1):
+        call = self._calls.pop(index)
+        return LegacyRequestWrapper(call.request)
+
+    def __len__(self):
+        return len(self._calls)
+
+    def __getitem__(self, item):
+        return LegacyRequestWrapper(self._calls[item].request)
+
+
+class RequestsMockAdapter:
+    def __init__(self, respx_mock):
+        self._respx_mock = respx_mock
+
+    @property
+    def request_history(self):
+        return RequestHistoryWrapper(self._respx_mock.calls)
+
+    def get(self, url, json=None, content=None, status_code=200, **kwargs):
+        if content is not None:
+            # Handle regex or starts with pattern if url is not a string, but here likely string.
+            # If url is provided, respx expects it.
+            return self._respx_mock.get(url).mock(return_value=Response(status_code, content=content))
+        return self._respx_mock.get(url).mock(return_value=Response(status_code, json=json))
+
+    def post(self, url, json=None, status_code=200, **kwargs):
+        return self._respx_mock.post(url).mock(return_value=Response(status_code, json=json))
+
+    def delete(self, url, json=None, status_code=200, **kwargs):
+        return self._respx_mock.delete(url).mock(return_value=Response(status_code, json=json))
+
+
+@pytest.fixture
+def requests_mock(respx_mock):
+    return RequestsMockAdapter(respx_mock)
+
 
 SYSTEMS = ['insect', 'mushroom', 'plant', 'crop']
 
@@ -125,11 +181,11 @@ def run_test_requests_to_server(api, system_name, image_path, identification_typ
 
 
 class RequestMatcher:
-    def __init__(self, api, api_key, image_path, requests_mock, identification_dict, identification):
+    def __init__(self, api, api_key, image_path, respx_mock, identification_dict, identification):
         self.api = api
         self.api_key = api_key
         self.image_path = image_path
-        self.requests_mock = requests_mock
+        self.respx_mock = respx_mock
         self.identification_dict = identification_dict
         self.identification = identification
 
@@ -141,16 +197,16 @@ class RequestMatcher:
         expected_query: str = None,
         expected_result=None,
     ):
-        request_record = self.requests_mock.request_history.pop()
-        assert request_record.method == 'POST'
-        assert request_record.headers['Content-Type'] == 'application/json'
-        assert request_record.headers['Api-Key'] == self.api_key
+        request_record = self.respx_mock.calls[-1]
+        assert request_record.request.method == 'POST'
+        assert request_record.request.headers['Content-Type'] == 'application/json'
+        assert request_record.request.headers['Api-Key'] == self.api_key
         if expected_query is not None:
             if not expected_query.startswith('?') and len(expected_query) > 0:
                 expected_query = '?' + expected_query
-            assert request_record.url == f'{base_url}{expected_query}'
+            assert str(request_record.request.url) == f'{base_url}{expected_query}'
         if expected_payload is not None:
-            payload = request_record.json()
+            payload = json.loads(request_record.request.content)
             for key, value in expected_payload:
                 assert payload[key] == value
         if expected_result is not None:
@@ -166,9 +222,13 @@ class RequestMatcher:
         **kwargs,
     ):
         if output is not None:
-            self.requests_mock.post(self.api.identification_url, json=output)
+            self.respx_mock.post(url__startswith=self.api.identification_url).mock(
+                return_value=Response(200, json=output)
+            )
         else:
-            self.requests_mock.post(self.api.identification_url, json=self.identification_dict)
+            self.respx_mock.post(url__startswith=self.api.identification_url).mock(
+                return_value=Response(200, json=self.identification_dict)
+            )
         if raises is None:
             if 'image' not in kwargs:
                 kwargs['image'] = self.image_path
@@ -182,24 +242,22 @@ class RequestMatcher:
         )
 
     def _check_get_request(self, response, base_url, expected_query, expected_result):
-        assert len(self.requests_mock.request_history) == 1
-        request_record = self.requests_mock.request_history.pop()
-        assert request_record.method == 'GET'
-        assert request_record.headers['Content-Type'] == 'application/json'
-        assert request_record.headers['Api-Key'] == self.api_key
+        request_record = self.respx_mock.calls[-1]
+        assert request_record.request.method == 'GET'
+        assert request_record.request.headers['Content-Type'] == 'application/json'
+        assert request_record.request.headers['Api-Key'] == self.api_key
         if expected_query is not None:
             if not expected_query.startswith('?'):
                 expected_query = '?' + expected_query
-                assert request_record.url == f'{base_url}{expected_query}'
+            # Normalize URL to remove trailing ? if empty query
+            actual_url = str(request_record.request.url)
+            assert actual_url == f'{base_url}{expected_query}'
         if expected_result is not None:
             assert response == expected_result
 
     def check_get_identification_request(self, expected_query: str = None, expected_result=None, **kwargs):
-        self.requests_mock.get(
-            f'{self.api.identification_url}/{self.identification_dict["access_token"]}',
-            json=self.identification_dict,
-        )
         base_url = f'{self.api.identification_url}/{self.identification_dict["access_token"]}'
+        self.respx_mock.get(url__startswith=base_url).mock(return_value=Response(200, json=self.identification_dict))
         response_identification = self.api.get_identification(self.identification_dict['access_token'], **kwargs)
         self._check_get_request(response_identification, base_url, expected_query, expected_result)
 
@@ -214,9 +272,13 @@ class RequestMatcher:
         **kwargs,
     ):
         if output is not None:
-            self.requests_mock.post(self.api.health_assessment_url, json=output)
+            self.respx_mock.post(url__startswith=self.api.health_assessment_url).mock(
+                return_value=Response(200, json=output)
+            )
         else:
-            self.requests_mock.post(self.api.health_assessment_url, json=health_assessment_dict)
+            self.respx_mock.post(url__startswith=self.api.health_assessment_url).mock(
+                return_value=Response(200, json=health_assessment_dict)
+            )
         if raises is None:
             if 'image' not in kwargs:
                 kwargs['image'] = self.image_path
@@ -233,14 +295,14 @@ class RequestMatcher:
         self, health_assessment_dict, expected_query: str = None, expected_result=None, **kwargs
     ):
         base_url = f'{self.api.identification_url}/{health_assessment_dict["access_token"]}'
-        self.requests_mock.get(base_url, json=health_assessment_dict)
+        self.respx_mock.get(url__startswith=base_url).mock(return_value=Response(200, json=health_assessment_dict))
         response_identification = self.api.get_health_assessment(health_assessment_dict["access_token"], **kwargs)
         self._check_get_request(response_identification, base_url, expected_query, expected_result)
 
 
 @pytest.fixture
-def request_matcher(api, api_key, image_path, requests_mock, identification_dict, identification):
-    return RequestMatcher(api, api_key, image_path, requests_mock, identification_dict, identification)
+def request_matcher(api, api_key, image_path, respx_mock, identification_dict, identification):
+    return RequestMatcher(api, api_key, image_path, respx_mock, identification_dict, identification)
 
 
 @pytest.fixture

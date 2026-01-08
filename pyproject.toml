@@ -13,7 +13,6 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.10"
 python-dotenv = "*"
-requests = "*"
 pillow = "*"
 torch = { version = "2.7.0", optional = true }
 huggingface-hub = { version = "^0.35.3", optional = true }
@@ -32,6 +31,7 @@ router = [
 pre-commit = "^3.5.0"
 black = "^23.11.0"
 bump2version = "^1.0.1"
+respx = "^0.22.0"
 
 
 [tool.poetry.group.test.dependencies]

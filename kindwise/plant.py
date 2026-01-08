@@ -361,7 +361,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
             extra_post_params=extra_post_params,
         )
         response = self._make_api_call(url, 'POST', payload, timeout=timeout)
-        if not response.ok:
+        if not response.is_success:
             raise ValueError(f'Error while creating a health assessment: {response.status_code=} {response.text=}')
         health_assessment = response.json()
         return health_assessment if as_dict else HealthAssessment.from_dict(health_assessment)
@@ -381,7 +381,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
         )
         url = f'{self.identification_url}/{token}{query}'
         response = self._make_api_call(url, 'GET', timeout=timeout)
-        if not response.ok:
+        if not response.is_success:
             raise ValueError(f'Error while getting a health assessment: {response.status_code=} {response.text=}')
         health_assessment = response.json()
         return health_assessment if as_dict else HealthAssessment.from_dict(health_assessment)

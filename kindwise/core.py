@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path, PurePath
 from typing import Any, BinaryIO, Generic, TypeVar
 
-import requests
+import httpx
 from PIL import Image
 
 from kindwise.models import Conversation, Identification, SearchResult, UsageInfo
@@ -49,18 +49,20 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
             'Content-Type': 'application/json',
             'Api-Key': self.api_key,
         }
-        response = requests.request(method, url, json=data, headers=headers, timeout=timeout)
-        if not response.ok:
-            raise ValueError(f'Error while making an API call: {response.status_code=} {response.text=}')
-        return response
+        with httpx.Client() as client:
+            response = client.request(method, url, json=data, headers=headers, timeout=timeout)
+            if response.is_error:
+                raise ValueError(f'Error while making an API call: {response.status_code=} {response.text=}')
+            return response
 
     @staticmethod
     def _load_image_buffer(image: PurePath | str | bytes | BinaryIO | Image.Image) -> io.BytesIO:
         def get_from_url() -> None | bytes:
             if not isinstance(image, str) or not image.startswith(('http://', 'https://')):
                 return None
-            response = requests.get(image)
-            if not response.ok:
+            with httpx.Client() as client:
+                response = client.get(image)
+            if not response.is_success:
                 return None
             return io.BytesIO(response.content)
 
@@ -298,7 +300,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
             kb_type = kb_type.value
         url = f'{self.kb_api_url}/{kb_type}/name_search{self._build_query(query=query, limit=limit, language=language)}'
         response = self._make_api_call(url, 'GET', timeout=timeout)
-        if not response.ok:
+        if not response.is_success:
             raise ValueError(f'Error while searching knowledge base: {response.status_code=} {response.text=}')
         return response.json() if as_dict else SearchResult.from_dict(response.json())
 
@@ -316,7 +318,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
             kb_type = kb_type.value
         url = f'{self.kb_api_url}/{kb_type}/{access_token}{self._build_query(language=language, details=details)}'
         response = self._make_api_call(url, 'GET', timeout=timeout)
-        if not response.ok:
+        if not response.is_success:
             raise ValueError(f'Error while getting knowledge base detail: {response.status_code=} {response.text=}')
         return response.json()
 
