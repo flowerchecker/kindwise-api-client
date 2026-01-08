@@ -142,10 +142,6 @@ class MushroomApi(KindwiseApi[Identification, MushroomKBType]):
         )
         return identification if as_dict else MushroomIdentification.from_dict(identification)
 
-    @property
-    def views_path(self) -> Path:
-        return settings.APP_DIR / 'resources' / f'views.mushroom.json'
-
     def ask_question(
         self,
         identification: Identification | str | int,
