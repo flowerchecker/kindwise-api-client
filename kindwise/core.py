@@ -26,15 +26,21 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
 
     @property
     @abc.abstractmethod
-    def identification_url(self): ...
+    def identification_url(self):
+        "Url for identification endpoint"
+        ...
 
     @property
     @abc.abstractmethod
-    def usage_info_url(self): ...
+    def usage_info_url(self):
+        "Url for usage info endpoint"
+        ...
 
     @property
     @abc.abstractmethod
-    def kb_api_url(self): ...
+    def kb_api_url(self):
+        "Url for knowledge base endpoint"
+        ...
 
     def feedback_url(self, token: str):
         return f'{self.identification_url}/{token}/feedback'
@@ -275,7 +281,8 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
 
     @property
     @abc.abstractmethod
-    def views_path(self) -> Path: ...
+    def views_path(self) -> Path:
+        ...
 
     def available_details(self) -> list[dict[str, any]]:
         with open(self.views_path) as f:
