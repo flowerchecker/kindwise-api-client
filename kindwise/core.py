@@ -349,9 +349,7 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         data = response.json()
         return data if as_dict else Conversation.from_dict(data)
 
-    def get_conversation(
-        self, identification: IdentificationType | str | int, timeout: float = 60.0
-    ) -> Conversation:
+    def get_conversation(self, identification: IdentificationType | str | int, timeout: float = 60.0) -> Conversation:
         token = identification.access_token if isinstance(identification, Identification) else identification
         response = self._make_api_call(self.conversation_url(token), 'GET', timeout=timeout)
         return Conversation.from_dict(response.json())
@@ -365,7 +363,5 @@ class KindwiseApi(abc.ABC, Generic[IdentificationType, KBType]):
         self, identification: IdentificationType | str | int, feedback: str | int | dict, timeout: float = 60.0
     ) -> bool:
         token = identification.access_token if isinstance(identification, Identification) else identification
-        self._make_api_call(
-            self.conversation_feedback_url(token), 'POST', {'feedback': feedback}, timeout=timeout
-        )
+        self._make_api_call(self.conversation_feedback_url(token), 'POST', {'feedback': feedback}, timeout=timeout)
         return True

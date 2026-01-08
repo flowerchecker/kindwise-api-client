@@ -1,5 +1,6 @@
 import unasync
 import os
+import subprocess
 from pathlib import Path
 
 
@@ -42,8 +43,13 @@ def main():
 
     filepaths_to_process = [os.path.abspath(p) for p in filepaths]
     unasync.unasync_files(filepaths_to_process, rules)
+    generated_files = []
     for path in filepaths:
-        post_process(path.parent.parent / path.name)
+        dest_path = path.parent.parent / path.name
+        post_process(dest_path)
+        generated_files.append(str(dest_path))
+
+    subprocess.run(["black"] + generated_files)
 
 
 if __name__ == "__main__":
