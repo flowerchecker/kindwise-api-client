@@ -1,6 +1,5 @@
 import unasync
 import os
-import subprocess
 from pathlib import Path
 
 
@@ -48,8 +47,6 @@ def main():
         dest_path = path.parent.parent / path.name
         post_process(dest_path)
         generated_files.append(str(dest_path))
-
-    subprocess.run(["black"] + generated_files)
 
 
 if __name__ == "__main__":
