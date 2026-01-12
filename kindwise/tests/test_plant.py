@@ -836,7 +836,7 @@ def test_delete_health_assessment(api, api_key, health_assessment, requests_mock
 def test_delete_plant_identification(api, api_key, identification, requests_mock):
     identification.custom_id = 123
     requests_mock.delete(f'{api.identification_url}/{identification.custom_id}', json=True)
-    response = api.delete_identification(identification.custom_id)
+    _ = api.delete_identification(identification.custom_id)
     request_record = requests_mock.request_history.pop()
     assert request_record.url == f'{api.identification_url}/{identification.custom_id}'
 
