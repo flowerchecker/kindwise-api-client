@@ -43,3 +43,14 @@ make version-patch
 # Publish to PyPI
 make publish
 ```
+
+### Test project
+
+Test deployment by using the test project in `test_project` directory. More information can be found in [test project README](test_project/README.md).
+
+
+> **Note:** If you are developing the SDK locally and want to test changes, you can install the SDK in editable mode from the parent directory instead of from PyPI:
+> ```bash
+> pip install -e ..
+> ```
+> And remove `kindwise-api-client` from `requirements.txt` before running the install command above.

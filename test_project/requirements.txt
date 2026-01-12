@@ -1,0 +1,2 @@
+kindwise-api-client[async]==0.8.1
+python-dotenv
