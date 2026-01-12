@@ -7,6 +7,7 @@ pipx install poetry==2.2.1
 poetry install --extras router
 pre-commit install
 pre-commit install --hook-type commit-msg
+make generate-sync
 ```
 
 ## Developmnet
