@@ -19,10 +19,9 @@ jobs:
         pip install poetry==2.2.1
         poetry config virtualenvs.create false
         poetry -vv install
-    - name: Check generated code
+    - name: generate sync code
       run: |
-        python generate/generate_sync.py
-        git diff --exit-code
+        make generate-sync
     - name: Lint with black
       run: |
         black . --check
