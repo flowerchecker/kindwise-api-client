@@ -1,14 +1,70 @@
 import os
 import random
+import json
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from httpx import Response
 
 from kindwise import settings
 from kindwise.models import UsageInfo, MessageType, SearchResult
+
+
+class LegacyRequestWrapper:
+    def __init__(self, request):
+        self._request = request
+        self.method = request.method
+        self.url = str(request.url)
+        self.headers = request.headers
+
+    def json(self):
+        return json.loads(self._request.content)
+
+
+class RequestHistoryWrapper:
+    def __init__(self, calls):
+        self._calls = calls
+
+    def pop(self, index=-1):
+        call = self._calls.pop(index)
+        return LegacyRequestWrapper(call.request)
+
+    def __len__(self):
+        return len(self._calls)
+
+    def __getitem__(self, item):
+        return LegacyRequestWrapper(self._calls[item].request)
+
+
+class RequestsMockAdapter:
+    def __init__(self, respx_mock):
+        self._respx_mock = respx_mock
+
+    @property
+    def request_history(self):
+        return RequestHistoryWrapper(self._respx_mock.calls)
+
+    def get(self, url, json=None, content=None, status_code=200, **kwargs):
+        if content is not None:
+            # Handle regex or starts with pattern if url is not a string, but here likely string.
+            # If url is provided, respx expects it.
+            return self._respx_mock.get(url).mock(return_value=Response(status_code, content=content))
+        return self._respx_mock.get(url).mock(return_value=Response(status_code, json=json))
+
+    def post(self, url, json=None, status_code=200, **kwargs):
+        return self._respx_mock.post(url).mock(return_value=Response(status_code, json=json))
+
+    def delete(self, url, json=None, status_code=200, **kwargs):
+        return self._respx_mock.delete(url).mock(return_value=Response(status_code, json=json))
+
+
+@pytest.fixture
+def requests_mock(respx_mock):
+    return RequestsMockAdapter(respx_mock)
+
 
 SYSTEMS = ['insect', 'mushroom', 'plant', 'crop']
 
@@ -110,7 +166,7 @@ def run_test_requests_to_server(api, system_name, image_path, identification_typ
         try:
             search_results: SearchResult = api.search(entity_name, limit=1)
         except NotImplementedError:
-            print(f'Skipped KB api check ')
+            print('Skipped KB api check ')
         else:
             print(f'Search results for {entity_name=}, limit=1 {system_name=}:')
             print(search_results)
@@ -124,12 +180,93 @@ def run_test_requests_to_server(api, system_name, image_path, identification_typ
             assert 'image' in kb_entity_detail
 
 
+async def run_async_test_requests_to_server(
+    api, system_name, image_path, identification_type, model_name='classification'
+):
+    assert system_name.lower() in SYSTEMS
+    with environment_api(api, system_name) as api:
+        usage_info = await api.usage_info()
+        print('Usage info:')
+        print(usage_info)
+        print()
+
+        custom_id = random.randint(1000000, 2000000)
+        date_time = datetime.now()
+        identification = await api.identify(
+            image_path, latitude_longitude=(1.0, 2.0), custom_id=custom_id, date_time=date_time
+        )
+        assert isinstance(identification, identification_type)
+        print(f'Identification created with, {date_time=} and {custom_id=}:')
+        print(identification)
+        print()
+        assert await api.feedback(identification.access_token, comment='correct', rating=5)
+
+        identification = await api.get_identification(identification.access_token, details=['image'], language='cz')
+        print('Identification with image details, custom id and cz language:')
+        print(identification)
+        assert isinstance(identification, identification_type)
+        assert 'image' in getattr(identification.result, model_name).suggestions[0].details
+        assert getattr(identification.result, model_name).suggestions[0].details['language'] == 'cz'
+        assert identification.feedback.comment == 'correct'
+        assert identification.feedback.rating == 5
+        assert identification.custom_id == custom_id
+        assert identification.input.datetime == date_time
+
+        # conversation
+
+        print('Conversation: `Hi`')
+        try:
+            conversation = await api.ask_question(identification.access_token, 'Hi')
+        except NotImplementedError:
+            print('Conversation is not implemented')
+        else:
+
+            def check_conversation(conv):
+                assert len(conv.messages) == 2
+                assert conv.identification == identification.access_token
+                assert conv.messages[0].content == 'Hi'
+                assert conv.messages[0].type == MessageType.QUESTION
+                assert conv.messages[1].content is not None
+                assert conv.messages[1].type == MessageType.ANSWER
+
+            check_conversation(conversation)
+            assert await api.conversation_feedback(conversation.identification, {'rating': 5})
+            conversation = await api.get_conversation(conversation.identification)
+            check_conversation(conversation)
+            assert conversation.feedback == {'rating': 5}
+            assert await api.delete_conversation(conversation.identification)
+            with pytest.raises(ValueError):
+                await api.get_conversation(conversation.identification)
+
+        assert await api.delete_identification(identification.access_token)
+
+        with pytest.raises(ValueError):
+            await api.get_identification(identification.access_token)
+
+        entity_name = getattr(identification.result, model_name).suggestions[0].name
+        try:
+            search_results: SearchResult = await api.search(entity_name, limit=1)
+        except NotImplementedError:
+            print('Skipped KB api check ')
+        else:
+            print(f'Search results for {entity_name=}, limit=1 {system_name=}:')
+            print(search_results)
+            assert len(search_results.entities) == search_results.limit == 1
+            assert search_results.entities[0].matched_in.lower() == entity_name.lower()
+            kb_entity_detail = await api.get_kb_detail(search_results.entities[0].access_token, 'image')
+            print(f'KB entity detail for {entity_name=}:')
+            print(kb_entity_detail)
+            assert kb_entity_detail['name'].lower() == entity_name.lower()
+            assert kb_entity_detail['language'] == 'en'
+            assert 'image' in kb_entity_detail
+
+
 class RequestMatcher:
-    def __init__(self, api, api_key, image_path, requests_mock, identification_dict, identification):
+    def __init__(self, api, api_key, image_path, respx_mock, identification_dict, identification):
         self.api = api
         self.api_key = api_key
         self.image_path = image_path
-        self.requests_mock = requests_mock
+        self.respx_mock = respx_mock
         self.identification_dict = identification_dict
         self.identification = identification
 
@@ -141,16 +278,16 @@ class RequestMatcher:
         expected_query: str = None,
         expected_result=None,
     ):
-        request_record = self.requests_mock.request_history.pop()
-        assert request_record.method == 'POST'
-        assert request_record.headers['Content-Type'] == 'application/json'
-        assert request_record.headers['Api-Key'] == self.api_key
+        request_record = self.respx_mock.calls[-1]
+        assert request_record.request.method == 'POST'
+        assert request_record.request.headers['Content-Type'] == 'application/json'
+        assert request_record.request.headers['Api-Key'] == self.api_key
         if expected_query is not None:
             if not expected_query.startswith('?') and len(expected_query) > 0:
                 expected_query = '?' + expected_query
-            assert request_record.url == f'{base_url}{expected_query}'
+            assert str(request_record.request.url) == f'{base_url}{expected_query}'
         if expected_payload is not None:
-            payload = request_record.json()
+            payload = json.loads(request_record.request.content)
             for key, value in expected_payload:
                 assert payload[key] == value
         if expected_result is not None:
@@ -166,9 +303,13 @@ class RequestMatcher:
         **kwargs,
     ):
         if output is not None:
-            self.requests_mock.post(self.api.identification_url, json=output)
+            self.respx_mock.post(url__startswith=self.api.identification_url).mock(
+                return_value=Response(200, json=output)
+            )
         else:
-            self.requests_mock.post(self.api.identification_url, json=self.identification_dict)
+            self.respx_mock.post(url__startswith=self.api.identification_url).mock(
+                return_value=Response(200, json=self.identification_dict)
+            )
         if raises is None:
             if 'image' not in kwargs:
                 kwargs['image'] = self.image_path
@@ -182,24 +323,22 @@ class RequestMatcher:
         )
 
     def _check_get_request(self, response, base_url, expected_query, expected_result):
-        assert len(self.requests_mock.request_history) == 1
-        request_record = self.requests_mock.request_history.pop()
-        assert request_record.method == 'GET'
-        assert request_record.headers['Content-Type'] == 'application/json'
-        assert request_record.headers['Api-Key'] == self.api_key
+        request_record = self.respx_mock.calls[-1]
+        assert request_record.request.method == 'GET'
+        assert request_record.request.headers['Content-Type'] == 'application/json'
+        assert request_record.request.headers['Api-Key'] == self.api_key
         if expected_query is not None:
             if not expected_query.startswith('?'):
                 expected_query = '?' + expected_query
-                assert request_record.url == f'{base_url}{expected_query}'
+            # Normalize URL to remove trailing ? if empty query
+            actual_url = str(request_record.request.url)
+            assert actual_url == f'{base_url}{expected_query}'
         if expected_result is not None:
             assert response == expected_result
 
     def check_get_identification_request(self, expected_query: str = None, expected_result=None, **kwargs):
-        self.requests_mock.get(
-            f'{self.api.identification_url}/{self.identification_dict["access_token"]}',
-            json=self.identification_dict,
-        )
         base_url = f'{self.api.identification_url}/{self.identification_dict["access_token"]}'
+        self.respx_mock.get(url__startswith=base_url).mock(return_value=Response(200, json=self.identification_dict))
         response_identification = self.api.get_identification(self.identification_dict['access_token'], **kwargs)
         self._check_get_request(response_identification, base_url, expected_query, expected_result)
 
@@ -214,9 +353,13 @@ class RequestMatcher:
         **kwargs,
     ):
         if output is not None:
-            self.requests_mock.post(self.api.health_assessment_url, json=output)
+            self.respx_mock.post(url__startswith=self.api.health_assessment_url).mock(
+                return_value=Response(200, json=output)
+            )
         else:
-            self.requests_mock.post(self.api.health_assessment_url, json=health_assessment_dict)
+            self.respx_mock.post(url__startswith=self.api.health_assessment_url).mock(
+                return_value=Response(200, json=health_assessment_dict)
+            )
         if raises is None:
             if 'image' not in kwargs:
                 kwargs['image'] = self.image_path
@@ -233,14 +376,14 @@ class RequestMatcher:
         self, health_assessment_dict, expected_query: str = None, expected_result=None, **kwargs
     ):
         base_url = f'{self.api.identification_url}/{health_assessment_dict["access_token"]}'
-        self.requests_mock.get(base_url, json=health_assessment_dict)
+        self.respx_mock.get(url__startswith=base_url).mock(return_value=Response(200, json=health_assessment_dict))
         response_identification = self.api.get_health_assessment(health_assessment_dict["access_token"], **kwargs)
         self._check_get_request(response_identification, base_url, expected_query, expected_result)
 
 
 @pytest.fixture
-def request_matcher(api, api_key, image_path, requests_mock, identification_dict, identification):
-    return RequestMatcher(api, api_key, image_path, requests_mock, identification_dict, identification)
+def request_matcher(api, api_key, image_path, respx_mock, identification_dict, identification):
+    return RequestMatcher(api, api_key, image_path, respx_mock, identification_dict, identification)
 
 
 @pytest.fixture

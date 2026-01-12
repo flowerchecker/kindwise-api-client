@@ -7,7 +7,7 @@ from typing import BinaryIO
 from PIL import Image
 
 from kindwise import settings
-from kindwise.core import KindwiseApi
+from kindwise.async_api.core import AsyncKindwiseApi
 from kindwise.models import (
     Identification,
     Conversation,
@@ -58,7 +58,7 @@ class MushroomIdentification(Identification):
         )
 
 
-class MushroomApi(KindwiseApi[Identification, MushroomKBType]):
+class AsyncMushroomApi(AsyncKindwiseApi[Identification, MushroomKBType]):
     host = 'https://mushroom.kindwise.com'
     default_kb_type = MushroomKBType.MUSHROOM
 
@@ -80,13 +80,13 @@ class MushroomApi(KindwiseApi[Identification, MushroomKBType]):
 
     @property
     def views_path(self) -> Path:
-        return settings.APP_DIR / 'resources' / f'views.mushroom.json'
+        return settings.APP_DIR / 'resources' / 'views.mushroom.json'
 
     @property
     def kb_api_url(self):
         return f'{self.host}/api/v1/kb'
 
-    def identify(
+    async def identify(
         self,
         image: PurePath | str | bytes | BinaryIO | Image.Image | list[str | PurePath | bytes | BinaryIO | Image.Image],
         details: str | list[str] = None,
@@ -103,7 +103,7 @@ class MushroomApi(KindwiseApi[Identification, MushroomKBType]):
         extra_post_params: str | dict[str, dict[str, str]] | dict[str, str] = None,
         timeout=60.0,
     ) -> MushroomIdentification | dict:
-        identification = super().identify(
+        identification = await super().identify(
             image=image,
             details=details,
             language=language,
@@ -122,7 +122,7 @@ class MushroomApi(KindwiseApi[Identification, MushroomKBType]):
             return identification
         return MushroomIdentification.from_dict(identification)
 
-    def get_identification(
+    async def get_identification(
         self,
         token: str | int,
         details: str | list[str] = None,
@@ -132,7 +132,7 @@ class MushroomApi(KindwiseApi[Identification, MushroomKBType]):
         extra_get_params: str | dict[str, str] = None,
         timeout=60.0,
     ) -> MushroomIdentification | dict:
-        identification = super().get_identification(
+        identification = await super().get_identification(
             token=token,
             details=details,
             language=language,
@@ -142,11 +142,7 @@ class MushroomApi(KindwiseApi[Identification, MushroomKBType]):
         )
         return identification if as_dict else MushroomIdentification.from_dict(identification)
 
-    @property
-    def views_path(self) -> Path:
-        return settings.APP_DIR / 'resources' / f'views.mushroom.json'
-
-    def ask_question(
+    async def ask_question(
         self,
         identification: Identification | str | int,
         question: str,

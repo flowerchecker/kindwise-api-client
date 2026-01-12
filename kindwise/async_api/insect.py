@@ -7,7 +7,7 @@ from typing import BinaryIO
 from PIL import Image
 
 from kindwise import settings
-from kindwise.core import KindwiseApi
+from kindwise.async_api.core import AsyncKindwiseApi
 from kindwise.models import (
     Identification,
     Conversation,
@@ -58,7 +58,7 @@ class InsectIdentification(Identification):
         )
 
 
-class InsectApi(KindwiseApi[InsectIdentification, InsectKBType]):
+class AsyncInsectApi(AsyncKindwiseApi[InsectIdentification, InsectKBType]):
     host = 'https://insect.kindwise.com'
     default_kb_type = InsectKBType.INSECT
 
@@ -82,7 +82,7 @@ class InsectApi(KindwiseApi[InsectIdentification, InsectKBType]):
     def kb_api_url(self):
         return f'{self.host}/api/v1/kb'
 
-    def identify(
+    async def identify(
         self,
         image: PurePath | str | bytes | BinaryIO | Image.Image | list[str | PurePath | bytes | BinaryIO | Image.Image],
         details: str | list[str] = None,
@@ -99,7 +99,7 @@ class InsectApi(KindwiseApi[InsectIdentification, InsectKBType]):
         extra_post_params: str | dict[str, dict[str, str]] | dict[str, str] = None,
         timeout=60.0,
     ) -> InsectIdentification | dict:
-        identification = super().identify(
+        identification = await super().identify(
             image=image,
             details=details,
             language=language,
@@ -118,7 +118,7 @@ class InsectApi(KindwiseApi[InsectIdentification, InsectKBType]):
             return identification
         return InsectIdentification.from_dict(identification)
 
-    def get_identification(
+    async def get_identification(
         self,
         token: str | int,
         details: str | list[str] = None,
@@ -128,7 +128,7 @@ class InsectApi(KindwiseApi[InsectIdentification, InsectKBType]):
         extra_get_params: str | dict[str, str] = None,
         timeout=60.0,
     ) -> InsectIdentification | dict:
-        identification = super().get_identification(
+        identification = await super().get_identification(
             token=token,
             details=details,
             language=language,
@@ -140,9 +140,9 @@ class InsectApi(KindwiseApi[InsectIdentification, InsectKBType]):
 
     @property
     def views_path(self) -> Path:
-        return settings.APP_DIR / 'resources' / f'views.insect.json'
+        return settings.APP_DIR / 'resources' / 'views.insect.json'
 
-    def ask_question(
+    async def ask_question(
         self,
         identification: Identification | str | int,
         question: str,

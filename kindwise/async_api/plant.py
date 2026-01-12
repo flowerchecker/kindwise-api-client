@@ -8,7 +8,7 @@ from typing import BinaryIO
 from PIL import Image
 
 from kindwise import settings
-from kindwise.core import KindwiseApi
+from kindwise.async_api.core import AsyncKindwiseApi
 from kindwise.models import (
     ClassificationLevel,
     Identification,
@@ -56,9 +56,9 @@ class PlantInput(Input):
             latitude=data['latitude'],
             longitude=data['longitude'],
             similar_images=data['similar_images'],
-            classification_level=ClassificationLevel(data['classification_level'])
-            if 'classification_level' in data
-            else None,
+            classification_level=(
+                ClassificationLevel(data['classification_level']) if 'classification_level' in data else None
+            ),
             classification_raw=data.get('classification_raw', False),
         )
 
@@ -96,9 +96,11 @@ class TaxaSpecificSuggestion:
         return cls(
             genus=[Suggestion.from_dict(suggestion) for suggestion in data['genus']],
             species=[Suggestion.from_dict(suggestion) for suggestion in data['species']],
-            infraspecies=None
-            if 'infraspecies' not in data
-            else [Suggestion.from_dict(suggestion) for suggestion in data['infraspecies']],
+            infraspecies=(
+                None
+                if 'infraspecies' not in data
+                else [Suggestion.from_dict(suggestion) for suggestion in data['infraspecies']]
+            ),
         )
 
 
@@ -187,7 +189,7 @@ class HealthAssessment(Identification):
         )
 
 
-class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
+class AsyncPlantApi(AsyncKindwiseApi[PlantIdentification, PlantKBType]):
     host = 'https://plant.id'
     default_kb_type = PlantKBType.PLANTS
 
@@ -215,7 +217,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
     def health_assessment_url(self):
         return f'{self.host}/api/v3/health_assessment'
 
-    def _build_payload(
+    async def _build_payload(
         self,
         *args,
         health: str = None,
@@ -223,7 +225,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
         classification_raw: bool = False,
         **kwargs,
     ):
-        payload = super()._build_payload(*args, **kwargs)
+        payload = await super()._build_payload(*args, **kwargs)
         if health is not None:
             payload['health'] = health
         if classification_level is not None:
@@ -244,7 +246,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
             details = list(dict.fromkeys(details + disease_details))
         return details
 
-    def identify(
+    async def identify(
         self,
         image: PurePath | str | bytes | BinaryIO | Image.Image | list[str | PurePath | bytes | BinaryIO | Image.Image],
         details: str | list[str] = None,
@@ -264,7 +266,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
         extra_post_params: str | dict[str, dict[str, str]] | dict[str, str] = None,
         timeout=60.0,
     ) -> PlantIdentification | RawPlantIdentification | HealthAssessment | dict:
-        identification = super().identify(
+        identification = await super().identify(
             image=image,
             details=self._build_details(details, disease_details),
             language=language,
@@ -290,7 +292,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
             return HealthAssessment.from_dict(identification)
         return PlantIdentification.from_dict(identification)
 
-    def get_identification(
+    async def get_identification(
         self,
         token: str | int,
         details: str | list[str] = None,
@@ -300,7 +302,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
         extra_get_params: str | dict[str, str] = None,
         timeout=60.0,
     ) -> PlantIdentification | dict:
-        identification = super().get_identification(
+        identification = await super().get_identification(
             token=token,
             details=self._build_details(details, disease_details),
             language=language,
@@ -316,7 +318,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
         **kwargs,
     ):
         query = super()._build_query(**kwargs)
-        disease_query = f'full_disease_list=true' if full_disease_list else ''
+        disease_query = 'full_disease_list=true' if full_disease_list else ''
         if disease_query == '':
             return query
 
@@ -324,7 +326,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
             return f'?{disease_query}'
         return f'{query}&{disease_query}'
 
-    def health_assessment(
+    async def health_assessment(
         self,
         image: PurePath | str | bytes | BinaryIO | Image.Image | list[str | PurePath | bytes | BinaryIO | Image.Image],
         details: str | list[str] = None,
@@ -349,7 +351,7 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
             full_disease_list=full_disease_list,
         )
         url = f'{self.health_assessment_url}{query}'
-        payload = self._build_payload(
+        payload = await self._build_payload(
             image,
             similar_images=similar_images,
             latitude_longitude=latitude_longitude,
@@ -358,13 +360,13 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
             max_image_size=max_image_size,
             extra_post_params=extra_post_params,
         )
-        response = self._make_api_call(url, 'POST', payload, timeout=timeout)
-        if not response.ok:
+        response = await self._make_api_call(url, 'POST', payload, timeout=timeout)
+        if not response.is_success:
             raise ValueError(f'Error while creating a health assessment: {response.status_code=} {response.text=}')
         health_assessment = response.json()
         return health_assessment if as_dict else HealthAssessment.from_dict(health_assessment)
 
-    def get_health_assessment(
+    async def get_health_assessment(
         self,
         token: str | int,
         details: str | list[str] = None,
@@ -378,24 +380,24 @@ class PlantApi(KindwiseApi[PlantIdentification, PlantKBType]):
             details=details, language=language, full_disease_list=full_disease_list, extra_get_params=extra_get_params
         )
         url = f'{self.identification_url}/{token}{query}'
-        response = self._make_api_call(url, 'GET', timeout=timeout)
-        if not response.ok:
+        response = await self._make_api_call(url, 'GET', timeout=timeout)
+        if not response.is_success:
             raise ValueError(f'Error while getting a health assessment: {response.status_code=} {response.text=}')
         health_assessment = response.json()
         return health_assessment if as_dict else HealthAssessment.from_dict(health_assessment)
 
-    def delete_health_assessment(
+    async def delete_health_assessment(
         self,
         identification: HealthAssessment | str | int,
         timeout=60.0,
     ) -> bool:
-        return self.delete_identification(identification, timeout=timeout)
+        return await self.delete_identification(identification, timeout=timeout)
 
     @property
     def views_path(self) -> Path:
-        return settings.APP_DIR / 'resources' / f'views.plant.json'
+        return settings.APP_DIR / 'resources' / 'views.plant.json'
 
     @classmethod
     def available_disease_details(cls) -> list[dict[str, any]]:
-        with open(settings.APP_DIR / 'resources' / f'views.plant.disease.json') as f:
+        with open(settings.APP_DIR / 'resources' / 'views.plant.disease.json') as f:
             return json.load(f)

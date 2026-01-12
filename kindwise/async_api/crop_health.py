@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from kindwise import settings
-from kindwise.core import KindwiseApi
+from kindwise.async_api.core import AsyncKindwiseApi
 from kindwise.models import Identification, ResultEvaluation, ClassificationWithScientificName, Conversation
 
 
@@ -35,7 +35,7 @@ class CropHealthKBType(str, enum.Enum):
     CROP = 'crop'
 
 
-class CropHealthApi(KindwiseApi[CropIdentification, CropHealthKBType]):
+class AsyncCropHealthApi(AsyncKindwiseApi[CropIdentification, CropHealthKBType]):
     host = 'https://crop.kindwise.com'
     default_kb_type = CropHealthKBType.CROP
     identification_class = CropIdentification
@@ -58,13 +58,13 @@ class CropHealthApi(KindwiseApi[CropIdentification, CropHealthKBType]):
 
     @property
     def views_path(self) -> Path:
-        return settings.APP_DIR / 'resources' / f'views.crop_health.disease.json'
+        return settings.APP_DIR / 'resources' / 'views.crop_health.disease.json'
 
     @property
     def kb_api_url(self):
         raise NotImplementedError('Crop health API does not support knowledge base API')
 
-    def ask_question(
+    async def ask_question(
         self,
         identification: CropIdentification | str | int,
         question: str,

@@ -46,7 +46,7 @@ class TestApi(KindwiseApi[Identification, TestKBType]):
 
     @property
     def views_path(self) -> Path:
-        return settings.APP_DIR / 'resources' / f'views.insect.json'
+        return settings.APP_DIR / 'resources' / 'views.insect.json'
 
     @property
     def kb_api_url(self):
@@ -643,7 +643,7 @@ def test_delete_conversation(api, api_key, identification, requests_mock):
 def test_conversation_feedback(api, api_key, identification, requests_mock):
     created = datetime(2024, 3, 19, 10, 57, 40, 35562, tzinfo=timezone.utc)
     requests_mock.post(
-        f'{api.identification_url}/{identification.access_token}/conversation',
+        f'{api.identification_url}/{identification.access_token}/conversation/feedback',
         json={
             'messages': [
                 {
@@ -663,3 +663,12 @@ def test_conversation_feedback(api, api_key, identification, requests_mock):
             'feedback': {},
         },
     )
+
+    response = api.conversation_feedback(identification.access_token, {'rating': 5})
+    assert response
+    request_record = requests_mock.request_history.pop()
+    assert request_record.method == 'POST'
+    assert request_record.url == f'{api.identification_url}/{identification.access_token}/conversation/feedback'
+    assert request_record.headers['Content-Type'] == 'application/json'
+    assert request_record.headers['Api-Key'] == api_key
+    assert request_record.json() == {'feedback': {'rating': 5}}

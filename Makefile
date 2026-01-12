@@ -1,3 +1,6 @@
+generate-sync:
+	python generate/generate_sync.py
+
 version-patch:
 	bump2version patch
 
