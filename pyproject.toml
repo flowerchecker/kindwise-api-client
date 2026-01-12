@@ -6,6 +6,7 @@ authors = ["Simon Plhak <simon.plhak@flowerchecker.com>"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/flowerchecker/kindwise"
+build = "generate/generate_sync.py"
 packages = [
     { include = "kindwise"},
 ]
@@ -45,7 +46,7 @@ requests-mock = "^1.11.0"
 pytest-asyncio = "^1.3.0"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core", "unasync"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
