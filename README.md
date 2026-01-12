@@ -560,26 +560,31 @@ print(router.identify(image_path).simple)
 The same available methods are also available in async interface. Here is an example of how to use it.
 
 ```python
+import asyncio
 from kindwise import AsyncPlantApi, PlantIdentification, UsageInfo
 
-# initialize plant.id api
-# "PLANT_API_KEY" environment variable can be set instead of specifying api_key
-api = AsyncPlantApi(api_key='your_api_key')
-# get usage information
-usage: UsageInfo = await api.usage_info()
+async def main():
+    # initialize plant.id api
+    # "PLANT_API_KEY" environment variable can be set instead of specifying api_key
+    api = AsyncPlantApi(api_key='your_api_key')
+    # get usage information
+    usage: UsageInfo = await api.usage_info()
 
-# identify plant by image
-latitude_longitude = (49.20340, 16.57318)
-# pass the image as a path
-image_path = 'path/to/plant_image.jpg'
-# make identification
-identification: PlantIdentification = await api.identify(image_path, latitude_longitude=latitude_longitude)
+    # identify plant by image
+    latitude_longitude = (49.20340, 16.57318)
+    # pass the image as a path
+    image_path = 'path/to/plant_image.jpg'
+    # make identification
+    identification: PlantIdentification = await api.identify(image_path, latitude_longitude=latitude_longitude)
 
-# get identification by a token with changed views
-# this method can be used to modify additional information in identification or to get identification from database
-# also works with identification.custom_id
-identification_with_different_views: PlantIdentification = await api.get_identification(identification.access_token)
+    # get identification by a token with changed views
+    # this method can be used to modify additional information in identification or to get identification from database
+    # also works with identification.custom_id
+    identification_with_different_views: PlantIdentification = await api.get_identification(identification.access_token)
 
-# delete identification
-await api.delete_identification(identification)  # also works with identification.access_token or identification.custom_id
+    # delete identification
+    await api.delete_identification(identification)  # also works with identification.access_token or identification.custom_id
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
