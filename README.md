@@ -1,5 +1,7 @@
 # Kindwise sdk for python
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/flowerchecker/kindwise-api-client)
+
 Python SDK toolkit for integrating Kindwise API into your application. This Python SDK provides a convenient way to
 interact with the Kindwise API for plant, insect, and mushroom identification. The SDK is organized into different
 modules, each corresponding to a specific domain ([plant](https://web.plant.id/plant-identification-api/),
