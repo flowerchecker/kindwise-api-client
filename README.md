@@ -539,6 +539,8 @@ api.delete_conversation(identification)
 If you are not sure which API should be used to process your images, you can
 use offline the **Router** model available in 3 sizes (`tiny`, `small`, and `base`).
 
+Weights are on Hugging Face: [`kindwise/router.tiny`](https://huggingface.co/kindwise/router.tiny) · [`small`](https://huggingface.co/kindwise/router.small) · [`base`](https://huggingface.co/kindwise/router.base).
+
 ```python
 from kindwise import Router, RouterSize
 
